@@ -1,0 +1,67 @@
+FROM php:8.3-rc-apache-buster
+
+# Establecer el directorio de trabajo
+WORKDIR /var/www/html/backend/
+
+# Permisos para la carpeta
+RUN chmod 777 /var/www/html/backend/
+
+# Actualizar repositorios y dependencias
+RUN apt-get update -o Acquire::Check-Valid-Until=false \
+    && apt-get install -y --reinstall debian-archive-keyring
+
+RUN apt-get update && apt-get install --yes --force-yes \
+    cron \
+    g++ \
+    gettext \
+    libicu-dev \
+    openssl \
+    libc-client-dev \
+    libkrb5-dev \
+    libxml2-dev \
+    libfreetype6-dev \
+    libgd-dev \
+    libmcrypt-dev \
+    bzip2 \
+    libbz2-dev \
+    htop \
+    libtidy-dev \
+    libcurl4-openssl-dev \
+    libz-dev \
+    libmemcached-dev \
+    libxslt-dev \
+    zip \
+    git \
+    libpq-dev  # Dependencia necesaria para PostgreSQL
+
+# Limpieza
+RUN rm -rf /var/lib/apt/lists/*
+
+# Instala extensiones de PHP para PostgreSQL
+RUN docker-php-ext-install pdo pdo_pgsql
+RUN docker-php-ext-enable pdo pdo_pgsql
+
+# Instala Composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+# Habilita mod_rewrite en Apache (solo si lo usas)
+RUN a2enmod rewrite
+
+# Configura GD (gráficos)
+RUN docker-php-ext-configure gd --with-freetype=/usr --with-jpeg=/usr
+RUN docker-php-ext-install gd
+
+# Copia el código de la aplicación
+COPY ./billsdesk-laravel /var/www/html/backend/
+
+# Establecer los permisos adecuados
+RUN chown -R www-data:www-data /var/www/html/backend/
+
+# Instala las dependencias del proyecto con Composer
+RUN composer install
+
+# Expón el puerto 8000
+EXPOSE 8000
+
+# Ejecutar las migraciones y levantar el servidor de Laravel
+CMD php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8000

@@ -1,0 +1,60 @@
+version: '3'
+services:
+  laravel:
+    build:
+      context: .
+      dockerfile: Dockerfile.laravel
+    volumes:
+      - ./billsdesk-laravel/:/var/www/html/backend/
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    networks:
+      - app-network 
+
+  db:
+    image: postgres:13
+    environment:
+      POSTGRES_DB: billsdesk
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+    ports:
+      - "5432:5432"
+    networks:
+      - app-network 
+
+  vue-app:
+    build:
+      context: .
+      dockerfile: Dockerfile.vue
+    volumes:
+      - ./billsdesk-vue/billsdesk/:/var/www/html/frontend/billsdesk
+    ports:
+      - "5173:5173" 
+    networks:
+      - app-network 
+
+  mongo: 
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db 
+    networks:
+      - app-network 
+
+  adminer:
+    image: adminer
+    ports:
+      - "8080:8080" 
+    depends_on:
+      - db 
+    networks:
+      - app-network 
+
+volumes:
+  mongo_data:
+
+networks:
+  app-network: 
