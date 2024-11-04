@@ -57,11 +57,13 @@ COPY ./billsdesk-laravel /var/www/html/backend/
 # Establecer los permisos adecuados
 RUN chown -R www-data:www-data /var/www/html/backend/
 
-# Instala las dependencias del proyecto con Composer
-RUN composer install
+RUN chmod -R 775 /var/www/html/backend/storage
+RUN chmod -R 775 /var/www/html/backend/bootstrap/cache
+RUN chown -R www-data:www-data /var/www/html/backend/storage
+RUN chown -R www-data:www-data /var/www/html/backend/bootstrap/cache
 
 # Expón el puerto 8000
 EXPOSE 8000
 
 # Ejecutar las migraciones y levantar el servidor de Laravel
-CMD php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8000
+CMD composer install && php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8000
