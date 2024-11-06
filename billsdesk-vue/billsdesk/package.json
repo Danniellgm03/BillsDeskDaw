@@ -10,10 +10,16 @@
     "install-and-run": "npm install && npm run dev"
   },
   "dependencies": {
-    "vue": "^3.5.12"
+    "@primevue/themes": "^4.2.1",
+    "js-cookie": "^3.0.5",
+    "primeicons": "^7.0.0",
+    "primevue": "^4.2.1",
+    "vue": "^3.5.12",
+    "vue-router": "^4.4.5"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.1.4",
+    "sass": "^1.80.6",
     "vite": "^5.4.8"
   }
 }
