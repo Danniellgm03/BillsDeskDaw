@@ -11,7 +11,7 @@
                 </p>
                 <div class="actions_users">
                     <button class="action_button" @click="visible = true">Create</button>
-                    <button class="action_button invite">Invite</button>
+                    <button class="action_button invite" @click="inviteUserForm()">Invite</button>
                 </div>
             </template>
             <template #main>
@@ -75,9 +75,9 @@
                 </p>
             </template>
             <template #main>
-                <div class="users_table">
+                <div class="users_table" v-if="loadingInvites || usersInvites.length > 0">
 
-                    <template v-if="loading">
+                    <template v-if="loadingInvites">
                         <div class="row_user" v-for="i in 2" :key="i">
                             <div class="important_info">
                                 <Skeleton width="40px" height="40px" class="circle_image"/>
@@ -93,27 +93,33 @@
                         </div>
                     </template>
                     <template v-else>
-                        <div class="row_user" v-for="i in 5" :key="i">
+                        <div class="row_user" v-for="user in usersInvites" :key="user.id">
                             <div class="important_info">
                                 <span class="circle_image">
-                                    J
+                                    {{ user.email.charAt(0).toUpperCase() }}
                                 </span>
                                 <div class="info_user">
-                                    <span class="user_name">John Doe <i class="pending_label">Pending</i></span>
-                                    <span class="user_email">jhon@gmail.com</span>
+                                    <span class="user_name">{{ user.email.split('@')[0] }}<i class="pending_label">Pending</i></span>
+                                    <span class="user_email">{{ user.email }}</span>
                                 </div>
                             </div>
                             <div class="actions">
-                                <button class="action_button">Resend</button>
-                                <button class="action_button cancel">Cancel</button>
+                                <button class="action_button" @click="resendInvite(user)">Resend</button>
+                                <button class="action_button cancel" @click="cancelInvite(user)">Cancel</button>
                             </div>
                         </div>
                     </template>
                 </div>
+                <div v-else>
+                    <strong>
+                        No pending invites
+                    </strong>
+                </div>
             </template>
         </SettingsLayout>
 
-        <Dialog v-model:visible="visible" modal header="Create User" :style="{ width: '25rem' }">
+
+         <Dialog v-model:visible="visible" modal header="Create User" :style="{ width: '25rem' }">
             <form>
                 <div class="field_form">
                     <label for="name">Name</label>
@@ -138,6 +144,21 @@
                 </div>
             </form>
         </Dialog>
+        <Dialog v-model:visible="visibleInvite" modal header="Invite User" :style="{ width: '25rem' }">
+            <form>
+                <div class="field_form">
+                    <label for="email">Email</label>
+                    <InputText id="email" v-model="form.email" />
+                </div>
+                <div class="field_form">
+                    <label for="role">Role</label>
+                    <Select :options="roles" optionLabel="name" placeholder="Select a Role" v-model="form.role" />
+                </div>
+                <div class="field_form">
+                    <button class="create_user_btn" @click.prevent="inviteUser">Invite</button>
+                </div>
+            </form>
+        </Dialog>
 
     </div>
 </template>
@@ -154,7 +175,11 @@ import InputText from 'primevue/inputtext';
 const authenticatedUser = ref(null);
 
 const visible = ref(false);
+const visibleInvite = ref(false);
 const loading = ref(true);
+const loadingInvites = ref(true);
+
+const usersInvites = ref([]);
 
 const roles = ref([]);
 const users = ref([]);
@@ -200,7 +225,86 @@ onBeforeMount(() => {
     authenticatedUser.value = getAuthenticatedUser();
     getUsers();
     getRoles();
+    getUsersInvites();
 })
+
+
+const resendInvite = async (user) => {
+    loadingInvites.value = true;
+    try {
+        const response = await fetch(`http://localhost:8000/api/company/invitations/resend`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Authorization': Cookies.get('authToken') ?? ''
+            },
+            body: JSON.stringify({ email: user.email })
+        });
+        const data = await response.json();
+        
+        if (response.ok) {
+            await getUsersInvites();
+        } else {
+            console.error(data);
+        }
+
+    } catch (error) {
+        console.error(error);
+    }
+    loadingInvites.value = false;
+}
+
+const cancelInvite = async (user) => {
+    loadingInvites.value = true;
+    try {
+        const response = await fetch(`http://localhost:8000/api/company/invitations/cancel`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Authorization': Cookies.get('authToken') ?? ''
+            },
+            body: JSON.stringify({ email: user.email })
+        });
+        const data = await response.json();
+        
+        if (response.ok) {
+            await getUsersInvites();
+        } else {
+            console.error(data);
+        }
+
+    } catch (error) {
+        console.error(error);
+    }
+    loadingInvites.value = false;
+}
+
+const getUsersInvites = async () => {
+    loadingInvites.value = true;
+    try {
+        const response = await fetch('http://localhost:8000/api/company/invitations', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Authorization': Cookies.get('authToken') ?? ''
+            }
+        });
+        const data = await response.json();
+        
+        if (response.ok) {
+            usersInvites.value = data;
+        } else {
+            console.error(data);
+        }
+
+    } catch (error) {
+        console.error(error);
+    }
+    loadingInvites.value = false;
+}
 
 const getRoles = async () => {
     loading.value = true;
@@ -252,7 +356,7 @@ const createUser = async () => {
 
         
         if (response.ok) {
-            getUsers();
+            await getUsers();
             visible.value = false;
         } else {
             console.error(data);
@@ -284,7 +388,7 @@ const updateRole = async (user) => {
 
         
         if (response.ok) {
-            getUsers();
+            await getUsers();
         } else {
             console.error(data);
         }
@@ -307,7 +411,48 @@ const deleteUser = async (user) => {
         });
         
         if (response.ok) {
-            getUsers();
+            await getUsers();
+        } else {
+            console.error(data);
+        }
+
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+const inviteUserForm = () => {
+    visibleInvite.value = true;
+}
+
+const inviteUser = async () => {
+    try {
+
+        let body = {
+            email: form.value.email,
+            role_id: form.value.role.id,
+            company_id: authenticatedUser.value.company_id
+        }
+
+        console.log(body)
+
+        const response = await fetch('http://localhost:8000/api/company/invitations', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Authorization': Cookies.get('authToken') ?? ''
+            },
+            body: JSON.stringify(body)
+        });
+        const data = await response.json();
+
+        
+        if (response.ok) {
+            visibleInvite.value = false;
+            await getUsers();
+            await getUsersInvites();
+            
         } else {
             console.error(data);
         }

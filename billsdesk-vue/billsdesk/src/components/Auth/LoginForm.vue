@@ -64,6 +64,7 @@ const handleLogin = async () => {
                     id: data.user.id,
                     name: data.user.name,
                     email: data.user.email,
+                    company_id: data.user.company_id,
                 }
             ));
             Cookies.set('authToken', `${data.token_type} ${data.access_token}`, {

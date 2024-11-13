@@ -7,11 +7,13 @@ import FileManager from '@/views/FileManager.vue';
 import Corrector from '@/views/Corrector.vue';
 import MappingSettings from '@/views/MappingSettings.vue';
 import SettingsPanel from '@/views/SettingsPanel.vue';
+import RegisterWithInvitation from '@/views/RegisterWithInvitation.vue';
 import Cookies from 'js-cookie'; // Importa js-cookie para acceder a las cookies
 
 const routes = [
   { path: '/login', component: Login },
   { path: '/register', component: Register },
+  { path: '/register/invite/', component: RegisterWithInvitation },
    {
     path: '/',
     component: DashboardLayout, 
