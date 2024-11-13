@@ -61,6 +61,7 @@ const handleLogin = async () => {
         if (data.access_token) {
             localStorage.setItem('user_data', JSON.stringify(
                 {
+                    id: data.user.id,
                     name: data.user.name,
                     email: data.user.email,
                 }
