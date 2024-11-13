@@ -131,7 +131,8 @@ class UserController extends Controller
 
     public function meProfile(Request $request)
     {
-        return response()->json($request->user());
+        $user = $request->user()->load('role', 'company');
+        return response()->json($user);
     }
 
     public function updateProfile(Request $request)
@@ -142,6 +143,8 @@ class UserController extends Controller
             'name' => 'string|max:255',
             'email' => 'email|unique:users,email,' . $user->id,
             'password' => 'string|min:8|nullable',
+            'phone' => 'string|nullable',
+            'address' => 'string|nullable',
         ]);
 
         if ($validator->fails()) {

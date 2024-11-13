@@ -40,6 +40,8 @@ class DatabaseSeeder extends Seeder
             'name' => 'Usuario Prueba',
             'email' => 'root@root.com',
             'password' => bcrypt('pepe123'),
+            'phone' => '123456789',
+            'address' => 'Dirección de prueba',
             'role_id' => $adminRole->id,
             'company_id' => $company->id,
         ]);
@@ -48,6 +50,8 @@ class DatabaseSeeder extends Seeder
             'name' => 'Usuario Prueba 2',
             'email' => 'root2@root2.com',
             'password' => bcrypt('pepe123'),
+            'phone' => '123456789',
+            'address' => 'Dirección de prueba',
             'role_id' => $adminRole->id,
             'company_id' => $company->id,
         ]);
@@ -56,6 +60,8 @@ class DatabaseSeeder extends Seeder
             'name' => 'Usuario Prueba 3',
             'email' => 'user@user.com',
             'password' => bcrypt('pepe123'),
+            'phone' => '123456789',
+            'address' => 'Dirección de prueba',
             'role_id' => $userRole->id,
             'company_id' => $company2->id,
         ]);
@@ -63,6 +69,8 @@ class DatabaseSeeder extends Seeder
             'name' => 'Usuario Prueba 4',
             'email' => 'user2@user2.com',
             'password' => bcrypt('pepe123'),
+            'phone' => '123456789',
+            'address' => 'Dirección de prueba',
             'role_id' => $userRole->id,
             'company_id' => $company2->id,
         ]);

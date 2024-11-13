@@ -20,6 +20,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'phone',
+        'Address',
         'role_id',
         'company_id',
     ];
@@ -47,7 +49,15 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
-    
+
+    public function toArray()
+    {
+        $array = parent::toArray();
+        $array['role'] = $this->role->name ?? null;
+        $array['company'] = $this->company->name ?? null;
+        return $array;
+    }
+
     public function role()
     {
         return $this->belongsTo(Role::class);
