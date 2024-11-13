@@ -18,32 +18,24 @@
                         </li>
                         <li>
                             <router-link
-                                to="/bills"
-                                :class="{ 'active-link': $route.path === '/bills' }"
-                            >
-                                <i class="pi pi-users"></i> Users
-                            </router-link>
-                        </li>
-                        <li>
-                            <router-link
-                                to="/customers"
-                                :class="{ 'active-link': $route.path === '/customers' }"
+                                to="/file-manager"
+                                :class="{ 'active-link': $route.path === '/file-manager' }"
                             >
                                 <i class="pi pi-folder"></i> File manager
                             </router-link>
                         </li>
                         <li>
                             <router-link
-                                to="/products"
-                                :class="{ 'active-link': $route.path === '/products' }"
+                                to="/corrector"
+                                :class="{ 'active-link': $route.path === '/corrector' }"
                             >
                                 <i class="pi pi-file-check"></i> Corrector
                             </router-link>
                         </li>
                         <li>
                             <router-link
-                                to="/settings"
-                                :class="{ 'active-link': $route.path === '/settings' }"
+                                to="/mapping-settings"
+                                :class="{ 'active-link': $route.path === '/mapping-settings' }"
                             >
                                 <i class="pi pi-sitemap"></i> Mapping
                             </router-link>
@@ -96,11 +88,10 @@
 <style scoped lang='scss'>
 
 .main_menu {
-    background-color: #003;
+    background-color: #000016;
     color: white;
     height: 100dvh;
-    max-width: 250px;
-    width: 30%;
+    width: 100%;
     padding: 20px;
     display: flex;
     flex-direction: column;
@@ -176,10 +167,11 @@
         position: relative;
         padding: 10px 5px;
         border-radius: 10px;
+        transition: background-color .15s;
 
         &:hover{
             cursor: pointer;
-            background-color: rgba(0, 0, 0, 0.289);
+            background-color: rgb(255 255 255 / 9%);
         }
         
 
