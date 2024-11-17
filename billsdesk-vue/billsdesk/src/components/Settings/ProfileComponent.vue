@@ -234,12 +234,7 @@ const saveUser = async () => {
             margin-bottom: 6px;
         }
     }
-
-    .divider {
-        margin: 20px 0;
-        border-bottom: 1px solid #d5d5d5;
-    }
-
+    
     .save_user {
         margin-top: 20px;
         padding: 10px 20px;

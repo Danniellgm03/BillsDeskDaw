@@ -22,6 +22,8 @@ import Menu from '@/components/Menu.vue';
     main {
         flex: 1;
         padding: 20px;
+        overflow-y: scroll;
+        height: 100dvh;
     }
 }
 </style>
