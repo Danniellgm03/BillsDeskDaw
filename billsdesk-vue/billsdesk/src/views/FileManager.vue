@@ -19,7 +19,7 @@
             <i class="pi pi-search" @click="searchFile"></i>
         </div>
         <div class="add_file" v-if="addingFile">
-            <FileUpload name="file[]" url="/api/upload" :multiple="true" accept="image/*" :maxFileSize="1000000">
+            <FileUpload name="file" url="/api/upload" :multiple="false" accept="image/*" :fileLimit="1" :maxFileSize="1000000">
                 <template #empty>
                     <span>Drag and drop files to here to upload.</span>
                 </template>
@@ -37,9 +37,12 @@
                     </button>
                 </div>
             </div>
-            <div :class="['container_files', layout]">
+            <div :class="['container_files', layout]" v-if="!files_loading">
                 <FileComponenteContent v-for="file in files" :key="file.id" :file="file"
                     @openDrawer="handleOpenDrawer" />
+            </div>
+            <div class="loading_container" v-else>
+                <LoadingTemplate/>
             </div>
         </section>
 
@@ -55,11 +58,11 @@
                 </div>
 
                 <div class="file_info">
-                    <h2>{{ selectedFile.name }}</h2>
-                    <p class="file_size">{{ selectedFile.size }}</p>
+                    <h2>{{ selectedFile.file_name }}</h2>
+                    <p class="file_size">{{ selectedFile.file_size }} {{ selectedFile.file_size_type }}</p>
                     <div class="file_description">
                         <strong>Description</strong>
-                        <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quidem.</p>
+                        <p>{{ selectedFile.file_description }}</p>
                     </div>
                 </div>
 
@@ -69,7 +72,7 @@
                     <div class="actions">
                         <button class="pi pi-download"></button>
                         <button class="pi pi-file-edit"></button>
-                        <button class="pi pi-trash"></button>
+                        <button class="pi pi-trash" @click="fetchDeleteFile(selectedFile)"></button>
                     </div>
                     <div class="divider"></div>
                 </div>
@@ -79,25 +82,73 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onBeforeMount } from 'vue';
 import FileComponenteContent from '@/components/FileManager/FileComponenteContent.vue';
 import Drawer from 'primevue/drawer';
+import Cookies from 'js-cookie';
 import FileUpload from 'primevue/fileupload';
 import Button from 'primevue/button';
+import LoadingTemplate from '@/components/LoadingTemplate.vue';
 
 const filterFavorites = ref(false);
 const search_input = ref('');
 const addingFile = ref(false);
 const isDrawerOpen = ref(false);
 const selectedFile = ref({});
-const files = ref(
-    Array.from({ length: 50 }, (_, index) => ({
-        id: index + 1, // Asignar un ID único para cada objeto
-        name: 'TestFile' + (index + 1) +'.pdf',
-        size: '1.5 MB',
-        fav: index % 2.5 === 0,
-    }))
-);
+const files = ref([]);
+const files_loading = ref(true);
+
+
+onBeforeMount(async () => {
+    files_loading.value = true;
+    files.value = await fetchFiles();
+});
+
+const fetchFiles = async () => {
+    files_loading.value = true;
+    try{
+        const response = await fetch('http://localhost:8000/api/files/', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Authorization': Cookies.get('authToken') ?? ''
+            },
+        });
+        const data = await response.json();
+        if(!response.ok){
+            throw new Error(data.message || 'Failed to fetch files');
+        }
+        files_loading.value = false;
+        return data.data;
+    } catch (error) {
+        console.log(error);
+    }
+    files_loading.value = false;
+}
+
+const fetchDeleteFile = async (file) => {
+    try{
+        const response = await fetch(`http://localhost:8000/api/files/${file.id}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Authorization': Cookies.get('authToken') ?? ''
+            },
+        });
+        const data = await response.json();
+        if(!response.ok){
+            throw new Error(data.message || 'Failed to delete file');
+        }
+
+        isDrawerOpen.value = false;
+        files.value = await fetchFiles();
+        return data.data;
+    } catch (error) {
+        console.log(error);
+    }
+}
 
 
 const layout = ref('grid_extend'); 
@@ -150,6 +201,12 @@ const changeLayout = () => {
 <style scoped lang='scss'>
 
 
+    .loading_container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 50px 0;
+    }
 
     .container_header {
         display: flex;

@@ -7,6 +7,7 @@ use App\Http\Middleware\CheckPermission;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\InvitationController;
+use App\Http\Controllers\FileController;
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
@@ -54,6 +55,15 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/', [InvitationController::class, 'index']);
         Route::post('/resend', [InvitationController::class, 'resendInvitation']);
         Route::post('/cancel', [InvitationController::class, 'cancelInvitation']);
+    });
+
+    Route::prefix('/files')->group(function () {
+        Route::get('/', [FileController::class, 'index']);
+        Route::post('/', [FileController::class, 'uploadFile']);
+        Route::get('{id}', [FileController::class, 'show']);
+        Route::get('/company/{company_id}', [FileController::class, 'showByCompany']);
+        Route::get('/user/{user_id}', [FileController::class, 'showByUser']);
+        Route::delete('{id}', [FileController::class, 'deleteFile']);
     });
 });
 

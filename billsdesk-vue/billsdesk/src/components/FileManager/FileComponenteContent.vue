@@ -1,17 +1,17 @@
 <template>
     <div class="file_container">
         <header class="rapid_actions">
-            <i class="pi pi-star" v-if="!file.fav"></i>
-            <i class="pi pi-star-fill" v-if="file.fav"></i>
+            <i class="pi pi-star" v-if="!file.is_fav"></i>
+            <i class="pi pi-star-fill" v-if="file.is_fav"></i>
             <i class="pi pi-ellipsis-v" @click="handleEllipsisClick(file)">
             </i>
         </header>
         <i class="pi pi-file"></i>
-        <p class="name_file">{{ file.name }}</p>
+        <p class="name_file">{{ file.file_name }}</p>
         <div class="divider"></div>
         <div class="footer_container">
             <strong>File Size</strong>
-            <p>{{ file.size }}</p>
+            <p>{{ file.file_size }} {{ file.file_size_type }}</p>
         </div>
     </div>
 </template>
