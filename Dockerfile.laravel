@@ -34,36 +34,42 @@ RUN apt-get update && apt-get install --yes --force-yes \
     git \
     libpq-dev  # Dependencia necesaria para PostgreSQL
 
-# Limpieza
+# Limpieza de paquetes
 RUN rm -rf /var/lib/apt/lists/*
 
-# Instala extensiones de PHP para PostgreSQL
+# Instalar la extensión de MongoDB
+RUN pecl install mongodb \
+    && echo "extension=mongodb.so" > /usr/local/etc/php/conf.d/mongodb.ini
+
+# Instalar extensiones de PHP para PostgreSQL
 RUN docker-php-ext-install pdo pdo_pgsql
 RUN docker-php-ext-enable pdo pdo_pgsql
 
-# Instala Composer
+# Instalar Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-# Habilita mod_rewrite en Apache (solo si lo usas)
+# Habilitar mod_rewrite en Apache
 RUN a2enmod rewrite
 
-# Configura GD (gráficos)
+# Configurar GD (gráficos)
 RUN docker-php-ext-configure gd --with-freetype=/usr --with-jpeg=/usr
 RUN docker-php-ext-install gd
 
-# Copia el código de la aplicación
-COPY ./billsdesk-laravel /var/www/html/backend/
 
-# Establecer los permisos adecuados
-RUN chown -R www-data:www-data /var/www/html/backend/
+# # Copia el código de la aplicación
+# COPY ./billsdesk-laravel /var/www/html/backend/
 
-RUN chmod -R 775 /var/www/html/backend/storage
-RUN chmod -R 775 /var/www/html/backend/bootstrap/cache
-RUN chown -R www-data:www-data /var/www/html/backend/storage
-RUN chown -R www-data:www-data /var/www/html/backend/bootstrap/cache
+# # Establecer los permisos adecuados
+# RUN chown -R www-data:www-data /var/www/html/backend/
+
+# RUN chmod -R 775 /var/www/html/backend/storage
+# RUN chmod -R 775 /var/www/html/backend/bootstrap/cache
+# RUN chown -R www-data:www-data /var/www/html/backend/storage
+# RUN chown -R www-data:www-data /var/www/html/backend/bootstrap/cache
+
 
 # Expón el puerto 8000
 EXPOSE 8000
 
-# Ejecutar las migraciones y levantar el servidor de Laravel
+# Comando final para ejecutar el contenedor
 CMD composer install && php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8000

@@ -1,0 +1,5 @@
+
+billsdesk-vue/billsdesk/node_modules/
+node_modules/
+.git/
+.env
