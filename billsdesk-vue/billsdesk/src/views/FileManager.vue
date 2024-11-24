@@ -8,8 +8,8 @@
                         'adding': addingFile,
                     }"> <i class="pi pi-plus" @click="handleAddFile"></i> </li>
                     <li>
-                        <i class="pi pi-star" @click="handleFavouriteFilter" v-if="!filterFavorites"></i>
-                        <i class="pi pi-star-fill" @click="handleFavouriteFilter" v-if="filterFavorites"></i>
+                        <i class="pi pi-star" @click="handleFavouriteFilter(filterFavorites)" v-if="!filterFavorites"></i>
+                        <i class="pi pi-star-fill" @click="handleFavouriteFilter(filterFavorites)" v-if="filterFavorites"></i>
                     </li>
                 </ul>
             </div>
@@ -17,13 +17,6 @@
         <div class="search_file">
             <input v-model="search_input" type="text" placeholder="Search file" @change="searchFile" />
             <i class="pi pi-search" @click="searchFile"></i>
-        </div>
-        <div class="add_file" v-if="addingFile">
-            <FileUpload name="file" url="/api/upload" :multiple="false" accept="image/*" :fileLimit="1" :maxFileSize="1000000">
-                <template #empty>
-                    <span>Drag and drop files to here to upload.</span>
-                </template>
-            </FileUpload>
         </div>
         <section class="files_manager">
             <div class="header_file_manager">
@@ -39,7 +32,7 @@
             </div>
             <div :class="['container_files', layout]" v-if="!files_loading">
                 <FileComponenteContent v-for="file in files" :key="file.id" :file="file"
-                    @openDrawer="handleOpenDrawer" />
+                    @openDrawer="handleOpenDrawer" @updateFav="handleUpdateFav" />
             </div>
             <div class="loading_container" v-else>
                 <LoadingTemplate/>
@@ -62,7 +55,10 @@
                     <p class="file_size">{{ selectedFile.file_size }} {{ selectedFile.file_size_type }}</p>
                     <div class="file_description">
                         <strong>Description</strong>
-                        <p>{{ selectedFile.file_description }}</p>
+                        <p v-if="!editDescription">{{ selectedFile.file_description }}</p>
+                        <Textarea v-if="editDescription" autoResize :rows="3" style="width: 100%;" v-model="selectedFile.file_description" />
+                        <button v-if="editDescription" @click="handleEditDescription(selectedFile)">Save</button>
+
                     </div>
                 </div>
 
@@ -70,14 +66,80 @@
                 <div class="actions_file">
                     <div class="divider"></div>
                     <div class="actions">
-                        <button class="pi pi-download"></button>
-                        <button class="pi pi-file-edit"></button>
+                        <button class="pi pi-download" @click="handleDownloadFile(selectedFile)"></button>
+                        <button class="pi pi-file-edit" @click="editDescription = true"></button>
                         <button class="pi pi-trash" @click="fetchDeleteFile(selectedFile)"></button>
                     </div>
                     <div class="divider"></div>
                 </div>
             </div>
         </Drawer>
+
+        <Dialog v-model:visible="addingFile" modal class="modal_file" header="Upload file" :style="{ width: '50rem' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }">
+            <div class="field">
+                 <label><strong>File:</strong></label>
+                <FileUpload
+                    name="file"
+                    :multiple="false"
+                    :fileLimit="1"
+                    :maxFileSize="1000000"
+                    @select="onFileSelect"
+                    v-model="file_form.file"
+                >
+                    <template #header="{ chooseCallback, clearCallback }">
+                        <Button 
+                            icon="pi pi-upload" 
+                            label="Choose File" 
+                            @click="chooseCallback" 
+                        />
+                        <Button 
+                            icon="pi pi-times" 
+                            label="Clear" 
+                            @click="clearCallback"
+                        />
+                        
+                    </template>
+                    <template #empty>
+                        <span>Drag and drop files to here to upload</span>
+                    </template>
+                    <template #content="{ files, uploadedFiles, removeUploadedFileCallback, removeFileCallback }">
+                        <div class="cards-container">
+                            <div 
+                                v-for="file in files" 
+                                :key="file.name" 
+                                class="card"
+                            >
+                                <img 
+                                :src="file.objectURL" 
+                                alt="Uploaded preview" 
+                                v-if="file.type.startsWith('image/')"
+                                class="preview"
+                                />
+                                <div class="card-details">
+                                <h3>{{ file.name }}</h3>
+                                <p>Size: {{ (file.size / 1024).toFixed(2) }} KB</p>
+                                </div>
+                                <Button 
+                                icon="pi pi-trash" 
+                                class="p-button-danger p-button-rounded"
+                                @click="removeFileCallback(file)"
+                                label="Remove"
+                                />
+                            </div>
+                        </div>
+                    </template>
+
+                </FileUpload>
+            </div>
+            <div class="field">
+                <label><strong>Description:</strong></label>
+                <Textarea autoResize :rows="3" style="width: 100%;" v-model="file_form.description" />
+            </div>
+            <div class="field field_upload_buttons">
+                <Button label="Cancel" @click="handleAddFile" />
+                <Button label="Upload" @click="handleUploadFileServer" />
+            </div>
+        </Dialog>
     </div>
 </template>
 
@@ -89,6 +151,9 @@ import Cookies from 'js-cookie';
 import FileUpload from 'primevue/fileupload';
 import Button from 'primevue/button';
 import LoadingTemplate from '@/components/LoadingTemplate.vue';
+import Dialog from 'primevue/dialog';
+import Textarea from 'primevue/textarea';
+
 
 const filterFavorites = ref(false);
 const search_input = ref('');
@@ -97,6 +162,12 @@ const isDrawerOpen = ref(false);
 const selectedFile = ref({});
 const files = ref([]);
 const files_loading = ref(true);
+const editDescription = ref(false);
+
+const file_form = ref({
+    file: null,
+    description: '',
+});
 
 
 onBeforeMount(async () => {
@@ -104,10 +175,134 @@ onBeforeMount(async () => {
     files.value = await fetchFiles();
 });
 
-const fetchFiles = async () => {
+
+const handleEditDescription = async (file) => {
+    try {
+        const response = await fetch(`http://localhost:8000/api/files/${file.id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Authorization': Cookies.get('authToken') ?? ''
+            },
+            body: JSON.stringify({
+                file_description: file.file_description,
+                is_fav: file.is_fav
+            }),
+        });
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.message || 'Failed to update description');
+        }
+        editDescription.value = false;
+    } catch (error) {
+        console.log(error);
+    }
+};
+
+const handleUpdateFav = async (file) => {
+    try {
+        const response = await fetch(`http://localhost:8000/api/files/${file.id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Authorization': Cookies.get('authToken') ?? ''
+            },
+            body: JSON.stringify({
+                is_fav: !file.is_fav
+            }),
+        });
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.message || 'Failed to update favorite');
+        }
+        files.value = await fetchFiles();
+    } catch (error) {
+        console.log(error);
+    }
+};
+
+const handleDownloadFile = (selectedFile) => {
+
+    try {
+        
+        const url = `http://localhost:8000/api/files/${selectedFile.id}/download`;
+        const response = fetch(url, {
+            method: 'GET',
+            headers: {
+                'Authorization': Cookies.get('authToken') ?? ''
+            },
+        });
+        response.then((response) => {
+            response.blob().then((blob) => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = selectedFile.file_name;
+                a.target = '_blank';
+                a.click();
+            });
+        });
+
+    } catch (error) {
+        console.error('Error al descargar el archivo:', error);
+        alert('No se pudo descargar el archivo. Inténtalo de nuevo.');
+    }
+
+};
+
+const handleUploadFileServer = async () => {
+    const formData = new FormData();
+
+    formData.append('file', file_form.value.file);
+    formData.append("file_type", "invoice");
+    formData.append('file_description', file_form.value.description);
+
+    try {
+        const response = await fetch('http://localhost:8000/api/files/', {
+            method: 'POST',
+            headers: {
+                'Authorization': Cookies.get('authToken') ?? ''
+            },
+            body: formData,
+        });
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.message || 'Failed to upload file');
+        }
+        addingFile.value = false;
+        files.value = await fetchFiles();
+    } catch (error) {
+        console.log(error);
+    }
+};
+
+const onFileSelect = (e) => {
+    file_form.value.file = e.files[0];
+};
+
+const fetchFiles = async (
+    page = 1,
+    limit = 5,
+    search = '',
+    is_fav = null
+) => {
     files_loading.value = true;
     try{
-        const response = await fetch('http://localhost:8000/api/files/', {
+
+
+        let url = `http://localhost:8000/api/files?page=${page}&limit=${limit}`;
+
+        if (search) {
+            url += `&search=${search}`;
+        }
+
+        if (is_fav !== null) {
+            url += `&is_fav=${is_fav}`;
+        }
+
+        const response = await fetch(url, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -120,7 +315,7 @@ const fetchFiles = async () => {
             throw new Error(data.message || 'Failed to fetch files');
         }
         files_loading.value = false;
-        return data.data;
+        return data.data.data;
     } catch (error) {
         console.log(error);
     }
@@ -162,29 +357,41 @@ const handleAddFile = () => {
     addingFile.value = !addingFile.value;
 };
 
-const searchFile = () => {
-    if (search_input.value) {
-        files.value = files.value.filter((file) => file.name.includes(search_input.value));
-    } else {
-        files.value = Array.from({ length: 50 }, (_, index) => ({
-            id: index + 1,
-            name: 'TestFile' + (index + 1) +'.pdf',
-            size: '1.5 MB',
-        }));
+const searchFile = async () => {
+    try{
+
+        files_loading.value = true;
+        const response = await fetch(`http://localhost:8000/api/files/search?search=${search_input.value}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Authorization': Cookies.get('authToken') ?? ''
+            },
+        }); 
+
+        const data = await response.json();
+        if(!response.ok){
+            throw new Error(data.message || 'Failed to search files');
+        }
+        files.value = data.data;
+        files_loading.value = false;
+
+    }catch(error){
+        console.log(error);
     }
 };
 
-const handleFavouriteFilter = () => {
-    filterFavorites.value = !filterFavorites.value;
-    if (filterFavorites.value) {
-        files.value = files.value.filter((file) => file.fav);
-    } else {
-        files.value = Array.from({ length: 50 }, (_, index) => ({
-            id: index + 1,
-            name: 'TestFile' + (index + 1) +'.pdf',
-            size: '1.5 MB',
-            fav: index % 2.5 === 0,
-        }));
+const handleFavouriteFilter = async (is_fav) => {
+    try{
+        filterFavorites.value = !is_fav;
+        if(filterFavorites.value){
+            files.value = await fetchFiles(1, 5, '',  filterFavorites.value);
+        }else{
+            files.value = await fetchFiles();
+        }
+    }catch(error){
+        console.log(error);
     }
 };
 
@@ -199,6 +406,65 @@ const changeLayout = () => {
 
 
 <style scoped lang='scss'>
+
+    .cards-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    }
+
+    .card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 16px;
+    max-width: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .card img.preview {
+    width: 100%;
+    height: auto;
+    border-radius: 4px;
+    }
+
+    .card-details {
+    margin: 8px 0;
+    text-align: center;
+    }
+
+    .card-details h3 {
+    font-size: 14px;
+    margin: 0;
+    word-wrap: break-word;
+    }
+
+    .card-details p {
+    font-size: 12px;
+    color: #666;
+    margin: 4px 0 0;
+    }
+
+    .modal_file{
+        .field{
+            margin-top: 20px;
+
+            label{
+                font-weight: 300;
+                display: block;
+                margin-bottom: 10px;
+            }
+        }
+
+        .field_upload_buttons{
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+    }
 
 
     .loading_container {

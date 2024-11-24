@@ -1,8 +1,8 @@
 <template>
     <div class="file_container">
         <header class="rapid_actions">
-            <i class="pi pi-star" v-if="!file.is_fav"></i>
-            <i class="pi pi-star-fill" v-if="file.is_fav"></i>
+            <i class="pi pi-star" v-if="!file.is_fav" @click="updateFav(file)"></i>
+            <i class="pi pi-star-fill" v-if="file.is_fav" @click="updateFav(file)"></i>
             <i class="pi pi-ellipsis-v" @click="handleEllipsisClick(file)">
             </i>
         </header>
@@ -27,12 +27,18 @@ defineProps({
 });
 
 // Emisor de eventos
-const emit = defineEmits(['openDrawer']);
+const emit = defineEmits(['openDrawer', 'updateFav']);
 
 // Método para manejar el clic
 const handleEllipsisClick = (file) => {
     emit('openDrawer', file); // Emitir el objeto file
 };
+
+// Método para actualizar el favorito
+const updateFav = (file) => {
+    emit('updateFav', file); // Emitir el objeto file
+};
+
 </script>
 
 <style scoped lang='scss'>

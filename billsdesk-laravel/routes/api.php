@@ -60,10 +60,13 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::prefix('/files')->group(function () {
         Route::get('/', [FileController::class, 'index']);
         Route::post('/', [FileController::class, 'uploadFile']);
+        Route::get('/search', [FileController::class, 'search']);
         Route::get('{id}', [FileController::class, 'show']);
         Route::get('/company/{company_id}', [FileController::class, 'showByCompany']);
         Route::get('/user/{user_id}', [FileController::class, 'showByUser']);
         Route::delete('{id}', [FileController::class, 'deleteFile']);
+        Route::get('/{id}/download', [FileController::class, 'downloadFile']);
+        Route::put('{id}', [FileController::class, 'updateFile']);
     });
 });
 

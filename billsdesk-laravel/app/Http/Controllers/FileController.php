@@ -12,13 +12,29 @@ class FileController extends Controller
 
     public function index(Request $request)
     {
-        $files = File::where('company_id', auth()->
-            user()->company_id)->get();
+        $perPage = $request->input('per_page', 15);
+        $search = $request->input('search', ''); // Parámetro de búsqueda
+        $isFav = $request->input('is_fav'); // Parámetro para filtrar por 'is_fav'
+        $limit = $request->input('limit', 5); // Limite de resultados (si no se pasa, no se aplica)
+        
+        $files = File::where('company_id', auth()->user()->company_id)
+                    ->where(function ($query) use ($search) {
+                        if ($search) {
+                            $query->where('name', 'like', "%$search%")
+                                ->orWhere('description', 'like', "%$search%");
+                        }
+                    })
+                    ->when($isFav !== null, function ($query) use ($isFav) {
+                        // Si is_fav está presente en la solicitud, filtra por ese valor
+                        $query->where('is_fav', (bool) $isFav);
+                    })
+                    ->limit($limit)->paginate($perPage);
 
         return response()->json([
             'data' => $files,
         ]);
     }
+
 
     // if not is the same company or user, return 403
     public function show(Request $request, $id)
@@ -162,17 +178,7 @@ class FileController extends Controller
 
     public function downloadFile(Request $request, $id)
     {
-        $file = File::where('company_id', auth()->
-            user()->company_id)->find($id);
-
-        $user_logeed = auth()->id();
-        $company_logeed = auth()->user()->company_id;
-
-        if ($file->created_by != $user_logeed && $file->company_id != $company_logeed) {
-            return response()->json([
-                'message' => 'You can not download this file',
-            ], 403);
-        }
+        $file = File::where('company_id', auth()->user()->company_id)->find($id);
 
         if (!$file) {
             return response()->json([
@@ -180,7 +186,74 @@ class FileController extends Controller
             ], 404);
         }
 
-        return response()->download(storage_path('app/' . $file->file_path));
+        $user_logged = auth()->id();
+        $company_logged = auth()->user()->company_id;
+
+        if ($file->created_by != $user_logged && $file->company_id != $company_logged) {
+            return response()->json([
+                'message' => 'You cannot download this file',
+            ], 403);
+        }
+
+        //get file path
+        $filePath = storage_path('app/private/' . $file->file_path);
+
+        //check if file exists
+        if (!file_exists($filePath)) {
+            return response()->json([
+                'message' => 'File not found',
+            ], 404);
+        }
+
+
+
+        return response()->download($filePath);
+    }
+
+
+    public function search(Request $request)
+    {
+        $search = $request->search;
+
+        $files = File::where('company_id', auth()->
+            user()->company_id)->where('file_name', 'like', '%' . $search . '%')->get();
+
+        return response()->json([
+            'data' => $files,
+        ]);
+    }
+
+    public function updateFile(Request $request, $id)
+    {
+        $validator = Validator::make($request->all(), [
+            'file_description' => 'nullable|string',
+            'is_fav' => 'required|boolean',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 400);
+        }
+
+        $file = File::where('company_id', auth()->
+            user()->company_id)->find($id);
+
+        if (!$file) {
+            return response()->json([
+                'message' => 'File not found',
+            ], 404);
+        }
+
+        $file->file_description = $request->file_description ?? $file->file_description;
+        $file->is_fav = $request->is_fav;
+        $file->save();
+
+        return response()->json([
+            'message' => 'File updated successfully',
+            'data' => $file,
+        ]);
     }
 
 }
