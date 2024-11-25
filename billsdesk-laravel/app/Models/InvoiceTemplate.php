@@ -3,25 +3,24 @@
 namespace App\Models;
 
 use MongoDB\Laravel\Eloquent\Model;
+use App\Models\CorrectionRule;
 
 class InvoiceTemplate extends Model
 {
+    protected $collection = 'invoice_templates';
     protected $connection = 'mongodb';
 
-    protected $collection = 'invoice_templates';
-
-    // Campos que se pueden asignar masivamente
     protected $fillable = [
         'company_id',
         'template_name',
         'column_mappings',
+        'created_at',
+        'updated_at',
     ];
 
-    // Definir tipos de datos para atributos específicos (opcional)
-    protected $casts = [
-        'company_id' => 'string',
-        'column_mappings' => 'array',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
-    ];
+    public function correctionRules()
+    {
+        return $this->hasMany(CorrectionRule::class, 'template_id', '_id');
+    }
+
 }

@@ -120,7 +120,7 @@ return [
             'username' => env('MONGO_USERNAME', ''),
             'password' => env('MONGO_PASSWORD', ''),
             'options'  => [
-                'ssl' => env('MONGO_SSL', false),
+                'ssl' => env('MONGO_SSL', false)
             ],
         ],
 

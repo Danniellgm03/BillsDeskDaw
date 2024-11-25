@@ -8,6 +8,10 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\FileController;
+use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\InvoiceTemplateController;
+use App\Http\Controllers\CorrectionRuleController;
+
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
@@ -67,6 +71,29 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::delete('{id}', [FileController::class, 'deleteFile']);
         Route::get('/{id}/download', [FileController::class, 'downloadFile']);
         Route::put('{id}', [FileController::class, 'updateFile']);
+    });
+
+
+    Route::prefix('/company/invoices')->group(function () {
+        Route::get('/', [InvoiceController::class, 'index']);
+        Route::post('/', [InvoiceController::class, 'create']);
+        Route::get('{id}', [InvoiceController::class, 'show']);
+        Route::get('{id}/template', [InvoiceController::class, 'getTemplate']);
+        Route::get('/template/{templateId}/correction-rules', [InvoiceController::class, 'getCorrectionRules']);
+    });
+
+    Route::prefix('/company/invoice-templates')->group(function () {
+        Route::get('/', [InvoiceTemplateController::class, 'index']);
+        Route::post('/', [InvoiceTemplateController::class, 'create']);
+        Route::get('{id}', [InvoiceTemplateController::class, 'show']);
+    });
+
+    Route::prefix('/company/correction-rules')->group(function () {
+        Route::get('/', [CorrectionRuleController::class, 'index']);
+        Route::post('/', [CorrectionRuleController::class, 'create']);
+        Route::get('{id}', [CorrectionRuleController::class, 'show']);
+        Route::put('{id}', [CorrectionRuleController::class, 'update']);
+        Route::delete('{id}', [CorrectionRuleController::class, 'destroy']);
     });
 });
 
