@@ -55,6 +55,9 @@ RUN a2enmod rewrite
 RUN docker-php-ext-configure gd --with-freetype=/usr --with-jpeg=/usr
 RUN docker-php-ext-install gd
 
+RUN apt-get update && apt-get install -y libzip-dev && docker-php-ext-install zip
+
+
 
 # # Copia el código de la aplicación
 # COPY ./billsdesk-laravel /var/www/html/backend/

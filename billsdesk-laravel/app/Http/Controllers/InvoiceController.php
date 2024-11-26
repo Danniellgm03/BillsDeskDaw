@@ -6,6 +6,10 @@ use Illuminate\Http\Request;
 use App\Models\Invoice;
 use Illuminate\Support\Facades\Validator;
 use App\Models\InvoiceTemplate;
+use App\Imports\InvoiceImport;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\CorrectedInvoicesExport;
+
 
 
 class InvoiceController extends Controller
@@ -73,6 +77,40 @@ class InvoiceController extends Controller
     {
         $template = InvoiceTemplate::where('_id', $templateId)->with('correctionRules')->firstOrFail();
         return response()->json(['correction_rules' => $template->correctionRules]);
+    }
+
+
+    public function processInvoice($invoiceId)
+    {
+        $invoice = Invoice::where('id', $invoiceId)
+            ->where('company_id', auth()->user()->company_id)
+            ->firstOrFail();
+
+        if (!$invoice) {
+            return response()->json(['errors' => 'La factura no existe'], 400);
+        }
+
+        $template_id = $invoice->template_id;
+
+        $template = InvoiceTemplate::where('_id', $template_id)->firstOrFail();
+
+        if (!$template) {
+            return response()->json(['errors' => 'La plantilla no existe'], 400);
+        }
+
+        $filePath = storage_path('app/private/' . $invoice->file->file_path);
+
+        if(!file_exists($filePath)){
+            return response()->json(['errors' => 'El archivo no existe'], 400);
+        }
+
+        $importer = new InvoiceImport($template);
+        $data = Excel::import($importer, $filePath);
+
+        $processedData = $importer->processedData;
+
+
+        return response()->json(['message' => 'Archivo procesado correctamente.', 'data' => $processedData]);
     }
 
 }

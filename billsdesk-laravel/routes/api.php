@@ -80,6 +80,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('{id}', [InvoiceController::class, 'show']);
         Route::get('{id}/template', [InvoiceController::class, 'getTemplate']);
         Route::get('/template/{templateId}/correction-rules', [InvoiceController::class, 'getCorrectionRules']);
+        Route::get('/process/{id}', [InvoiceController::class, 'processInvoice']);
     });
 
     Route::prefix('/company/invoice-templates')->group(function () {
