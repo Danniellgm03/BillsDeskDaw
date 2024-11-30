@@ -47,7 +47,7 @@ class InvoiceImport implements ToCollection, WithHeadingRow
             $this->processedData[] = $correctedRow;
         }
 
-        $this->addAggregationsToProcessedData($mappedRowResult);
+        // $this->addAggregationsToProcessedData($mappedRowResult);
     }
 
     private function mapColumns($row)
@@ -172,28 +172,74 @@ class InvoiceImport implements ToCollection, WithHeadingRow
     {
         foreach ($corrections as $correction) {
             $field = $correction['field'];
+            $newColumn = isset($correction['new_column']) ? $correction['new_column'] : null;
             $action = $correction['action'];
             $value = $correction['value'];
 
+            // Si la columna no existe, inicializa con 0
             if (!array_key_exists($field, $row)) {
                 $row[$field] = 0;
             }
 
+            // Calcula el nuevo valor para la nueva columna, si se especifica
+            if ($newColumn) {
+                // Calculamos el valor que debe tener la nueva columna
+                $row[$newColumn] = $this->resolveValue($value, $row[$field]);
+            }
+
+            // Aplica la corrección al campo original
             switch ($action) {
                 case 'add':
-                    $row[$field] += $value;
+                    $row[$field] += $this->resolveValue($value, $row[$field]);
                     break;
                 case 'subtract':
-                    $row[$field] -= $value;
+                    $row[$field] -= $this->resolveValue($value, $row[$field]);
                     break;
                 case 'update':
-                    $row[$field] = $value;
+                    $row[$field] = $this->resolveValue($value, $row[$field]);
                     break;
             }
         }
 
         return $row;
     }
+
+    private function resolveValue($value, $currentValue)
+    {
+        // Verifica si 'value' es un array de rangos
+        if (is_array($value)) {
+            foreach ($value as $range) {
+                // Verifica si el rango tiene 'step' y 'step_increment'
+                if (isset($range['step'])) {
+                    // Validación para valores fuera del rango de 'min' y 'max'
+                    if ($currentValue >= $range['min']) {
+                        $baseValue = $range['value']; // Empieza con el valor base
+
+                        // Si 'step_increment' está presente, calculamos el incremento
+                        if (isset($range['step_increment'])) {
+                            // Calculamos cuántos incrementos caben entre el valor actual y el mínimo
+                            $stepCount = floor(($currentValue - $range['min']) / $range['step']);
+                            $increment = $stepCount * $range['step_increment'];
+
+                            return $baseValue + $increment;
+                        }else {
+                            return $baseValue;
+                        }
+                    }
+                }
+                // Rango sin 'step', solo verificamos si el valor está dentro del rango 'min' a 'max'
+                elseif ($currentValue >= $range['min'] && $currentValue < $range['max']) {
+                    return $range['value'];
+                }
+            }
+        }
+
+        // Si no es un array ni se aplica 'step', simplemente devuelve el valor
+        return $value;
+    }
+
+
+
 
     private function initializeAggregations()
     {
