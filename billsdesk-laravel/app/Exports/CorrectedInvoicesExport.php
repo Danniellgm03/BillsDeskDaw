@@ -48,6 +48,23 @@ class CorrectedInvoicesExport implements FromArray, WithHeadings, WithStyles
         // Aplicar estilos personalizados para las celdas coloreadas
         foreach ($this->processedData as $index => $row) {
             $rowIndex = $index + 2; // +2 porque Excel comienza en 1 y hay cabeceras
+
+            // Verificar si la fila tiene un 'row_highlight'
+            if (isset($row['row_highlight']) && $row['row_highlight']) {
+                // Buscar las columnas con valores no vacíos en la fila
+                $nonEmptyColumns = array_filter($row, function ($value) {
+                    return !is_null($value) && $value !== '';
+                });
+
+                // Si la fila tiene columnas no vacías, aplicar el color de fila a esas columnas
+                foreach ($nonEmptyColumns as $key => $value) {
+                    $columnIndex = array_search($key, array_keys($row)) + 1; // Posición en la fila
+                    $sheet->getStyleByColumnAndRow($columnIndex, $rowIndex)
+                        ->getFill()->setFillType('solid')->getStartColor()->setARGB($row['row_highlight']);
+                }
+            }
+
+            // Aplicar colores a celdas individuales basadas en '_highlight'
             foreach ($row as $key => $value) {
                 if (str_contains($key, '_highlight') && $value) {
                     $baseField = str_replace('_highlight', '', $key);
@@ -58,25 +75,13 @@ class CorrectedInvoicesExport implements FromArray, WithHeadings, WithStyles
             }
         }
 
-        // // Agregar las fórmulas para las agregaciones
-        // foreach ($this->aggregations as $type => $fields) {
-        //     foreach ($fields as $field => $value) {
-        //         $columnLetter = $this->getColumnLetter($field, $sheet);
-        //         if ($columnLetter) {
-        //             if ($type === 'sum') {
-        //                 $sheet->setCellValue("$columnLetter$totalRows", "=SUM($columnLetter" . "2:$columnLetter" . ($totalRows - 1) . ")");
-        //             } elseif ($type === 'average') {
-        //                 $sheet->setCellValue("$columnLetter$totalRows", "=AVERAGE($columnLetter" . "2:$columnLetter" . ($totalRows - 1) . ")");
-        //             }
-        //         }
-        //     }
-        // }
-
         // Aplicar negrita a la fila de agregaciones
         $sheet->getStyle("A$totalRows:Z$totalRows")->getFont()->setBold(true);
 
         return [];
     }
+
+
 
     private function getColumnLetter(string $field, Worksheet $sheet)
     {

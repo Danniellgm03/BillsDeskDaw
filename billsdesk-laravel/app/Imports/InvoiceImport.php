@@ -92,22 +92,40 @@ class InvoiceImport implements ToCollection, WithHeadingRow
         }
 
         foreach ($this->template['validation_rules'] as $rule) {
+            $applyRowHighlight = false; // Variable para determinar si se aplica el row_highlight
+
             if (isset($rule['conditions'])) {
                 foreach ($rule['conditions'] as $condition) {
                     if ($this->validateCondition($row, $condition)) {
-                        $row["{$condition['field']}_highlight"] = $condition['highlight'];
+                        // Si hay un campo 'row_highlight' en la condición, se aplica
+                        if (isset($condition['row_highlight'])) {
+                            $row['row_highlight'] = $condition['row_highlight']; // Asignar color a la fila
+                            $applyRowHighlight = true;
+                        }
+                        // Si hay un campo 'highlight', se aplica como antes
+                        if (isset($condition['highlight'])) {
+                            $row["{$condition['field']}_highlight"] = $condition['highlight'];
+                        }
                     }
                 }
             } else {
                 if ($this->validateCondition($row, $rule)) {
-                    $row["{$rule['field']}_highlight"] = $rule['highlight'];
+                    // Si hay un campo 'row_highlight' en la regla, se aplica
+                    if (isset($rule['row_highlight'])) {
+                        $row['row_highlight'] = $rule['row_highlight']; // Asignar color a la fila
+                        $applyRowHighlight = true;
+                    }
+                    // Si hay un campo 'highlight', se aplica como antes
+                    if (isset($rule['highlight'])) {
+                        $row["{$rule['field']}_highlight"] = $rule['highlight'];
+                    }
                 }
             }
         }
 
-
         return $row;
     }
+
 
     private function validateCondition($row, $condition)
     {
