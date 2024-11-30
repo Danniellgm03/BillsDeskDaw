@@ -12,6 +12,7 @@ class InvoiceImport implements ToCollection, WithHeadingRow
     protected $rules; // Reglas de corrección
     public $processedData = [];
     public $aggregations = []; // Resultados de las agregaciones
+    protected $seenRows = []; // Para llevar un registro de las filas procesadas
 
     public function __construct($template, $rules)
     {
@@ -28,7 +29,9 @@ class InvoiceImport implements ToCollection, WithHeadingRow
         foreach ($rows as $row) {
             // Mapear columnas
             $mappedRow = $this->mapColumns($row);
-            $mappedRowResult = $mappedRow;
+
+            // Primero, marcar las filas duplicadas (separado de la validación)
+            $mappedRow = $this->markDuplicateRows($mappedRow);
 
             // Crear nuevas columnas basadas en fórmulas
             $mappedRow = $this->applyFormulas($mappedRow);
@@ -39,15 +42,38 @@ class InvoiceImport implements ToCollection, WithHeadingRow
             // Aplicar correcciones (correction_rules)
             $correctedRow = $this->applyCorrections($mappedRow);
 
-
             // Actualizar agregaciones
             $this->updateAggregations($correctedRow);
 
-            // // Guardar la fila procesada
+            // Guardar la fila procesada
             $this->processedData[] = $correctedRow;
         }
+    }
 
-        // $this->addAggregationsToProcessedData($mappedRowResult);
+    // Detectar filas duplicadas según un campo especificado en validation_rules
+    private function markDuplicateRows($row)
+    {
+        // Verificar si existe una regla de duplicados en validation_rules
+        foreach ($this->template['validation_rules'] as $rule) {
+            if (isset($rule['duplicate_field'])) {
+                $duplicateField = $rule['duplicate_field'];  // Columna a verificar para duplicados
+                $rowHighlight = $rule['row_highlight'] ?? 'yellow'; // Color por defecto si no se especifica
+
+                // Verificar si la fila ya ha sido procesada basándonos en la columna duplicada
+                if (isset($row[$duplicateField])) {
+                    if (in_array($row[$duplicateField], $this->seenRows)) {
+                        // Si ya existe, marcar la fila como duplicada
+                        $row['row_highlight'] = $rowHighlight; // Aplicar el color especificado
+                        $row['duplicate'] = true; // Marcar la fila como duplicada
+                    } else {
+                        // Si no existe, agregarla a los registros procesados
+                        $this->seenRows[] = $row[$duplicateField];
+                    }
+                }
+            }
+        }
+
+        return $row;
     }
 
     private function mapColumns($row)
@@ -126,9 +152,12 @@ class InvoiceImport implements ToCollection, WithHeadingRow
         return $row;
     }
 
-
     private function validateCondition($row, $condition)
     {
+        if(!isset($condition['field']) || !isset($condition['operator']) || !isset($condition['value'])){
+            return false;
+        }
+
         $field = $condition['field'];
         $operator = $condition['operator'];
         $value = $condition['value'];
@@ -222,7 +251,7 @@ class InvoiceImport implements ToCollection, WithHeadingRow
                             $increment = $stepCount * $range['step_increment'];
 
                             return $baseValue + $increment;
-                        }else {
+                        } else {
                             return $baseValue;
                         }
                     }
@@ -237,9 +266,6 @@ class InvoiceImport implements ToCollection, WithHeadingRow
         // Si no es un array ni se aplica 'step', simplemente devuelve el valor
         return $value;
     }
-
-
-
 
     private function initializeAggregations()
     {
