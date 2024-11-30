@@ -82,35 +82,80 @@ class InvoiceController extends Controller
 
     public function processInvoice($invoiceId)
     {
+        // Recuperar la factura
         $invoice = Invoice::where('id', $invoiceId)
             ->where('company_id', auth()->user()->company_id)
+            ->with('file') // Aseguramos cargar el archivo asociado
             ->firstOrFail();
 
-        if (!$invoice) {
-            return response()->json(['errors' => 'La factura no existe'], 400);
-        }
+        // Verificar la existencia de la plantilla asociada
+        $template = InvoiceTemplate::where('_id', $invoice->template_id)
+            ->with('correctionRules') // Cargar también las reglas de corrección
+            ->firstOrFail();
 
-        $template_id = $invoice->template_id;
+        // Preparar las reglas de corrección
+        $rules = $template->correctionRules->map(function ($rule) {
+            return [
+                'conditions' => $rule['conditions'],
+                'corrections' => $rule['corrections'],
+            ];
+        })->toArray();
 
-        $template = InvoiceTemplate::where('_id', $template_id)->firstOrFail();
-
-        if (!$template) {
-            return response()->json(['errors' => 'La plantilla no existe'], 400);
-        }
-
+        // Verificar si el archivo físico existe
         $filePath = storage_path('app/private/' . $invoice->file->file_path);
 
-        if(!file_exists($filePath)){
+        if (!file_exists($filePath)) {
             return response()->json(['errors' => 'El archivo no existe'], 400);
         }
 
-        $importer = new InvoiceImport($template);
-        $data = Excel::import($importer, $filePath);
+        // Instanciar el importador con plantilla y reglas
+        $importer = new InvoiceImport($template->toArray(), $rules);
+
+        // Procesar el archivo Excel/CSV
+        Excel::import($importer, $filePath);
+
+        // Recuperar los datos procesados
+        $processedData = $importer->processedData;
+
+        return response()->json([
+            'message' => 'Archivo procesado correctamente.',
+            'data' => $processedData,
+        ]);
+    }
+
+    public function processInvoiceDonwloade($invoiceId)
+    {
+         $invoice = Invoice::where('id', $invoiceId)
+            ->where('company_id', auth()->user()->company_id)
+            ->with('file')
+            ->firstOrFail();
+
+        $template = InvoiceTemplate::where('_id', $invoice->template_id)
+            ->with('correctionRules')
+            ->firstOrFail();
+
+        $rules = $template->correctionRules->map(function ($rule) {
+            return [
+                'conditions' => $rule['conditions'],
+                'corrections' => $rule['corrections'],
+            ];
+        })->toArray();
+
+        $filePath = storage_path('app/private/' . $invoice->file->file_path);
+
+        if (!file_exists($filePath)) {
+            return response()->json(['errors' => 'El archivo no existe'], 400);
+        }
+
+        $importer = new InvoiceImport($template->toArray(), $rules);
+        Excel::import($importer, $filePath);
 
         $processedData = $importer->processedData;
 
+        // Columnas que requieren agregaciones
+        $aggregations = $template->aggregations ?? [];
 
-        return response()->json(['message' => 'Archivo procesado correctamente.', 'data' => $processedData]);
+        // Generar el Excel corregido con fórmulas dinámicas
+        return Excel::download(new CorrectedInvoicesExport($processedData, $aggregations), 'facturas_corregidas.xlsx');
     }
-
 }

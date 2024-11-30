@@ -81,6 +81,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('{id}/template', [InvoiceController::class, 'getTemplate']);
         Route::get('/template/{templateId}/correction-rules', [InvoiceController::class, 'getCorrectionRules']);
         Route::get('/process/{id}', [InvoiceController::class, 'processInvoice']);
+        Route::get('/process/{id}/download', [InvoiceController::class, 'processInvoiceDonwloade']);
     });
 
     Route::prefix('/company/invoice-templates')->group(function () {

@@ -40,6 +40,9 @@ class InvoiceTemplateController extends Controller
             'company_id' => auth()->user()->company_id,
             'template_name' => $request->input('template_name'),
             'column_mappings' => $request->input('column_mappings'),
+            'formulas' => $request->input('formulas', []),
+            'validation_rules' => $request->input('validation_rules', []),
+            'aggregations' => $request->input('aggregations', []),
         ]);
 
         return response()->json(['message' => 'Plantilla creada', 'template' => $template]);

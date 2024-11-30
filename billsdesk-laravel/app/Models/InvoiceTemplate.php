@@ -14,6 +14,9 @@ class InvoiceTemplate extends Model
         'company_id',
         'template_name',
         'column_mappings',
+        'formulas',
+        'validation_rules',
+        'aggregations',
         'created_at',
         'updated_at',
     ];

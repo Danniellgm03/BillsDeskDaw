@@ -9,56 +9,102 @@ use Maatwebsite\Excel\Concerns\WithHeadingRow;
 class InvoiceImport implements ToCollection, WithHeadingRow
 {
     protected $template;
+    protected $rules; // Reglas de corrección
     public $processedData = [];
+    public $aggregations = []; // Resultados de las agregaciones
 
-    public function __construct($template)
+    public function __construct($template, $rules)
     {
         $this->template = $template;
+        $this->rules = $rules;
     }
 
     public function collection(Collection $rows)
     {
-        foreach ($rows as $row) {
-            // Mapear columnas del archivo al formato interno
-            $mappedRow = $this->mapColumns($row);
+        // Inicializar agregaciones
+        $this->initializeAggregations();
 
-            // Aplicar las correcciones
+        $mappedRowResult = [];
+        foreach ($rows as $row) {
+            // Mapear columnas
+            $mappedRow = $this->mapColumns($row);
+            $mappedRowResult = $mappedRow;
+
+            // Crear nuevas columnas basadas en fórmulas
+            $mappedRow = $this->applyFormulas($mappedRow);
+
+            // Validar y destacar filas según validation_rules
+            $mappedRow = $this->applyValidationRules($mappedRow);
+
+            // Aplicar correcciones (correction_rules)
             $correctedRow = $this->applyCorrections($mappedRow);
 
-            // Agregar la fila procesada a los datos finales
+
+            // Actualizar agregaciones
+            $this->updateAggregations($correctedRow);
+
+            // // Guardar la fila procesada
             $this->processedData[] = $correctedRow;
         }
+
+        $this->addAggregationsToProcessedData($mappedRowResult);
     }
 
     private function mapColumns($row)
     {
         $mappedRow = [];
-        foreach ($this->template->column_mappings as $csvColumn => $internalField) {
+        foreach ($this->template['column_mappings'] as $csvColumn => $internalField) {
             $mappedRow[$internalField] = $row[$csvColumn] ?? null;
         }
         return $mappedRow;
     }
 
-    private function applyCorrections($row)
+    private function applyFormulas($row)
     {
-        $correctionRules = $this->template->correctionRules;
+        if (!isset($this->template['formulas'])) {
+            return $row;
+        }
 
-        foreach ($correctionRules as $rule) {
-            $applyCorrections = true;
+        foreach ($this->template['formulas'] as $formula) {
+            $newColumn = $formula['new_column'];
+            $expression = $formula['formula'];
 
-            // Validar todas las condiciones de la regla
-            foreach ($rule['conditions'] as $condition) {
-                if (!$this->validateCondition($row, $condition)) {
-                    $applyCorrections = false;
-                    break; // Si una condición falla, no aplicar correcciones
-                }
+            // Reemplazar campos en la fórmula con sus valores en la fila
+            foreach ($row as $field => $value) {
+                $expression = str_replace($field, $value, $expression);
             }
 
-            // Si todas las condiciones se cumplen, aplicar las correcciones
-            if ($applyCorrections) {
-                $row = $this->applyMultipleCorrections($row, $rule['corrections']);
+            // Evaluar la fórmula
+            try {
+                $row[$newColumn] = eval("return $expression;");
+            } catch (\Throwable $e) {
+                $row[$newColumn] = null; // Si hay un error, la columna será null
             }
         }
+
+        return $row;
+    }
+
+    private function applyValidationRules($row)
+    {
+        if (!isset($this->template['validation_rules'])) {
+            return $row;
+        }
+
+        foreach ($this->template['validation_rules'] as $rule) {
+            if (isset($rule['conditions'])) {
+                foreach ($rule['conditions'] as $condition) {
+                    if ($this->validateCondition($row, $condition)) {
+                        $row["{$condition['field']}_highlight"] = $condition['highlight'];
+                    }
+                }
+            } else {
+                if ($this->validateCondition($row, $rule)) {
+                    $row["{$rule['field']}_highlight"] = $rule['highlight'];
+                }
+            }
+        }
+
 
         return $row;
     }
@@ -84,6 +130,26 @@ class InvoiceImport implements ToCollection, WithHeadingRow
         }
     }
 
+    private function applyCorrections($row)
+    {
+        foreach ($this->rules as $rule) {
+            $applyCorrections = true;
+
+            foreach ($rule['conditions'] as $condition) {
+                if (!$this->validateCondition($row, $condition)) {
+                    $applyCorrections = false;
+                    break;
+                }
+            }
+
+            if ($applyCorrections) {
+                $row = $this->applyMultipleCorrections($row, $rule['corrections']);
+            }
+        }
+
+        return $row;
+    }
+
     private function applyMultipleCorrections($row, $corrections)
     {
         foreach ($corrections as $correction) {
@@ -91,12 +157,10 @@ class InvoiceImport implements ToCollection, WithHeadingRow
             $action = $correction['action'];
             $value = $correction['value'];
 
-            // Inicializar el campo si no existe
             if (!array_key_exists($field, $row)) {
-                $row[$field] = 0; // Valor predeterminado
+                $row[$field] = 0;
             }
 
-            // Aplicar la corrección
             switch ($action) {
                 case 'add':
                     $row[$field] += $value;
@@ -111,5 +175,54 @@ class InvoiceImport implements ToCollection, WithHeadingRow
         }
 
         return $row;
+    }
+
+    private function initializeAggregations()
+    {
+        if (!isset($this->template['aggregations'])) {
+            return;
+        }
+
+        foreach ($this->template['aggregations'] as $aggregation) {
+            foreach ($aggregation['fields'] as $field) {
+                $this->aggregations[$aggregation['type']][$field] = [];
+            }
+        }
+    }
+
+    private function updateAggregations($row)
+    {
+        if (!isset($this->template['aggregations'])) {
+            return;
+        }
+
+        foreach ($this->template['aggregations'] as $aggregation) {
+            foreach ($aggregation['fields'] as $field) {
+                if (isset($row[$field])) {
+                    $this->aggregations[$aggregation['type']][$field][] = $row[$field];
+                }
+            }
+        }
+    }
+
+    private function addAggregationsToProcessedData($mappedRowResult)
+    {
+
+        $aggregatedRow = [];
+        foreach($mappedRowResult as $key => $value){
+            $aggregatedRow[$key] = null;
+        }
+
+        foreach ($this->aggregations as $type => $fields) {
+            foreach ($fields as $field => $values) {
+                if ($type === 'sum') {
+                    $aggregatedRow[$field] = array_sum($values);
+                } elseif ($type === 'average') {
+                    $aggregatedRow[$field] = array_sum($values) / count($values);
+                }
+            }
+        }
+
+        $this->processedData[] = $aggregatedRow;
     }
 }
