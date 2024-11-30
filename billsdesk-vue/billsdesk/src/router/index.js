@@ -9,6 +9,15 @@ import MappingSettings from '@/views/MappingSettings.vue';
 import SettingsPanel from '@/views/SettingsPanel.vue';
 import RegisterWithInvitation from '@/views/RegisterWithInvitation.vue';
 import Cookies from 'js-cookie'; // Importa js-cookie para acceder a las cookies
+import SelectingFile from '@/views/mappings_views/SelectingFileView.vue';
+import Mapping from '@/views/mappings_views/MappingView.vue';
+import InvoiceTemplate from '@/views/mappings_views/InvoiceTemplateView.vue';
+import CorrectionRules from '@/views/mappings_views/CorrectionRulesView.vue';
+import NewTemplateInvoice from '@/views/mappings_views/invoiceTemplate_views/NewTemplateInvoiceView.vue';
+import ExistingTemplateInvoiceView from '@/views/mappings_views/invoiceTemplate_views/ExistingTemplateInvoiceview.vue';
+import EditTemplateInvoice from '@/views/mappings_views/invoiceTemplate_views/EditTemplateInvoiceView.vue';
+import Finish from '@/views/mappings_views/FinishView.vue';
+
 
 const routes = [
   { path: '/login', component: Login },
@@ -22,7 +31,24 @@ const routes = [
       { path: '', component: DashboardView },
       { path: 'file-manager', component: FileManager},
       { path: 'corrector', component: Corrector},
-      { path: 'mapping-settings', component: MappingSettings},
+      {
+        path: 'mapping-settings', 
+        component: MappingSettings,
+        children: [
+          { path: 'selecting-files', component: SelectingFile },
+          { path: 'mapping', component: Mapping },
+          {
+            path: 'invoice-template',
+            component: InvoiceTemplate,  // Vista principal de los templates
+            children: [
+              { path: 'new', component: NewTemplateInvoice },  // Subruta para crear un nuevo template
+              { path: 'existing', component: ExistingTemplateInvoiceView },  // Subruta para usar un template existente
+              { path: 'edit/:id', component: EditTemplateInvoice },  // Subruta para editar un template existente
+            ],
+          },          { path: 'correction-rules', component: CorrectionRules },
+          { path: 'finish', component: Finish }
+        ]
+      },
       { path: 'settings', component: SettingsPanel},
     ],
   },

@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\File;
 use Illuminate\Support\Facades\Validator;
+use Maatwebsite\Excel\Facades\Excel;
+
 
 
 class FileController extends Controller
@@ -16,7 +18,7 @@ class FileController extends Controller
         $search = $request->input('search', ''); // Parámetro de búsqueda
         $isFav = $request->input('is_fav'); // Parámetro para filtrar por 'is_fav'
         $limit = $request->input('limit', 5); // Limite de resultados (si no se pasa, no se aplica)
-        
+
         $files = File::where('company_id', auth()->user()->company_id)
                     ->where(function ($query) use ($search) {
                         if ($search) {
@@ -254,6 +256,42 @@ class FileController extends Controller
             'message' => 'File updated successfully',
             'data' => $file,
         ]);
+    }
+
+    public function getCsvHeaders(Request $request, $id)
+    {
+        // Buscar el archivo en la base de datos
+        $file = File::where('company_id', auth()->user()->company_id)->find($id);
+
+        if (!$file) {
+            return response()->json([
+                'message' => 'File not found',
+            ], 404);
+        }
+
+        // Obtener la ruta completa del archivo CSV
+        $filePath = storage_path('app/private/' . $file->file_path);
+
+        // Verificar si el archivo existe
+        if (!file_exists($filePath)) {
+            return response()->json([
+                'message' => 'File not found in storage',
+            ], 404);
+        }
+
+        // Leer la primera fila (cabecera) del archivo CSV usando Maatwebsite/Excel
+        try {
+            $headers = Excel::toArray([], $filePath)[0][0]; // Obtener la primera fila de la primera hoja
+
+            return response()->json([
+                'data' => $headers, // Devolver las cabeceras
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error reading CSV file',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 
 }

@@ -71,6 +71,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::delete('{id}', [FileController::class, 'deleteFile']);
         Route::get('/{id}/download', [FileController::class, 'downloadFile']);
         Route::put('{id}', [FileController::class, 'updateFile']);
+        Route::get('/{id}/getHeaders', [FileController::class, 'getCsvHeaders']);
     });
 
 
