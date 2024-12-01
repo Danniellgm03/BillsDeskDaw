@@ -70,18 +70,20 @@
       </div>
 
       <button type="submit">Save Template</button>
+      <button type="submit" @click.prevent="saveAndContinue()" style="margin-left: 10px;">Save and Finish</button>
     </form>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { useInvoiceTemplateStore } from '@/stores/invoiceTemplaceStore'; // Asegúrate de que el store esté configurado para manejar el template
 import Cookies from 'js-cookie';
 import InputText from 'primevue/inputtext';
 
 const route = useRoute();
+const router = useRouter();
 const templateData = ref({
   template_name: "",
   company_id: 1,
@@ -90,6 +92,12 @@ const templateData = ref({
   validation_rules: [],
   aggregations: []
 });
+
+
+const saveAndContinue = async () => {
+  await saveTemplate();
+  router.push('/mapping-settings/correction-rules');
+};
 
 const fetchTemplateData = async () => {
   try {
@@ -172,16 +180,57 @@ const removeAggregation = (index) => {
   templateData.value.aggregations.splice(index, 1);
 };
 
-// Save Template (simulate save to API)
+const cleanValidationRules = (rules) => {
+  return rules.map((rule) => {
+    // Filtra los campos vacíos o nulos en cada regla
+    const cleanedRule = Object.fromEntries(
+      Object.entries(rule).filter(([key, value]) => {
+        if (key === 'conditions') {
+          return Array.isArray(value) && value.length > 0; // Incluye solo si tiene condiciones
+        }
+        return value !== null && value !== ''; // Excluye valores nulos o vacíos
+      })
+    );
+
+    // Procesa las condiciones si existen
+    if (cleanedRule.conditions) {
+      cleanedRule.conditions = cleanedRule.conditions.map((condition) =>
+        Object.fromEntries(
+          Object.entries(condition).filter(([key, value]) => value !== null && value !== '')
+        )
+      );
+    }
+
+    return cleanedRule;
+  }).filter((rule) => Object.keys(rule).length > 0); // Excluye reglas completamente vacías
+};
+
+const processAggregations = (aggregations) => {
+  if (Array.isArray(aggregations)) {
+    return aggregations;
+  }
+  return aggregations.map((aggregation) => ({
+    ...aggregation,
+    fields: aggregation.fields.split(',').map((field) => field.trim()) // Convierte la cadena en un arreglo
+  }));
+};
+
 const saveTemplate = async () => {
   try {
+    // Procesa `validation_rules` y `aggregations` antes de enviar
+    const processedTemplateData = {
+      ...templateData.value,
+      validation_rules: cleanValidationRules(templateData.value.validation_rules),
+      aggregations: processAggregations(templateData.value.aggregations),
+    };
+
     const response = await fetch(`http://localhost:8000/api/company/invoice-templates/${route.params.id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${Cookies.get('authToken')}`,
       },
-      body: JSON.stringify(templateData.value),
+      body: JSON.stringify(processedTemplateData),
     });
 
     if (response.ok) {

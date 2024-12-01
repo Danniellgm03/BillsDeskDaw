@@ -35,6 +35,10 @@ const routes = [
         path: 'mapping-settings', 
         component: MappingSettings,
         children: [
+          {
+            redirect: '/mapping-settings/selecting-files',
+            path: ''
+          },
           { path: 'selecting-files', component: SelectingFile },
           { path: 'mapping', component: Mapping },
           {
