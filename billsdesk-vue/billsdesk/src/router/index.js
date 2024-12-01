@@ -2,7 +2,6 @@ import { createRouter, createWebHistory } from 'vue-router';
 import Login from '@/views/Login.vue'; 
 import Register from '@/views/Register.vue';
 import DashboardLayout from '@/layouts/DashboardLayout.vue';
-import DashboardView from '@/views/DashBoard.vue';
 import FileManager from '@/views/FileManager.vue';
 import Corrector from '@/views/Corrector.vue';
 import MappingSettings from '@/views/MappingSettings.vue';
@@ -28,7 +27,7 @@ const routes = [
     component: DashboardLayout, 
     meta: { requiresAuth: true },
     children: [
-      { path: '', component: DashboardView },
+      { path: '', component: FileManager },
       { path: 'file-manager', component: FileManager},
       { path: 'corrector', component: Corrector},
       {

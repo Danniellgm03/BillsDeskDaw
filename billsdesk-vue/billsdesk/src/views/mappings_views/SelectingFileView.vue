@@ -12,7 +12,7 @@
                >
                     <div class="file_name">{{ file.file_name }}</div>
                     <div class="file_size">{{ file.size }}</div>
-                    <div class="file_date">{{ file.created_at }}</div>
+                    <div class="file_date">{{ dateFormated(file.created_at) }}</div>
                 </div>
             </div>
              <button class="button_continue"><router-link to="/mapping-settings/invoice-template">Continue</router-link></button>
@@ -46,6 +46,10 @@ onBeforeMount(async () => {
     files.value = await fetchFiles();
 });
 
+
+const dateFormated = (date) => {
+    return new Date(date).toLocaleDateString();
+}
 
 const fetchFiles = async (
     page = 1,
@@ -127,7 +131,7 @@ const fetchFiles = async (
     }
 
     .selected {
-        background-color: #f7f7f7;
+        background-color: #e1ecff;
     }
 
     .loading_container {

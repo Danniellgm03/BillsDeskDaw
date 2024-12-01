@@ -1,10 +1,12 @@
 <template>
   <div>
-    <div v-if="templates.length === 0">No templates available.</div>
-    <div v-else class="container_templates">
+    <div class="container_templates" v-if="!loading">
       <div v-for="template in templates" :key="template.id">
         <InvoiceTemplateContent :template="template" @select-template="handleTemplateSelection" />
       </div>
+    </div>
+    <div class="loading_container"  v-else>
+      <LoadingTemplate />
     </div>
   </div>
 </template>
@@ -15,8 +17,12 @@ import { useInvoiceTemplateStore } from '@/stores/invoiceTemplaceStore';
 import InvoiceTemplateContent from '@/components/Mapping/InvoiceTemplateContent.vue';
 import Cookies from 'js-cookie';
 import { useRouter } from 'vue-router';  
+import LoadingTemplate from '@/components/LoadingTemplate.vue';
+
 
 const router = useRouter();
+
+const loading = ref(false);
 
 const invoiceTemplateStore = useInvoiceTemplateStore();
 const selectedTemplate = computed(() => invoiceTemplateStore.template);
@@ -29,6 +35,7 @@ onBeforeMount(async () => {
 
 const fetchAllTemplateInvoices = async () => {
   try {
+    loading.value = true;
     const response = await fetch('http://localhost:8000/api/company/invoice-templates', {
       method: 'GET',
       headers: {
@@ -43,6 +50,7 @@ const fetchAllTemplateInvoices = async () => {
     }
 
     const data = await response.json();
+    loading.value = false;
     return data; // Suponiendo que la respuesta tiene la propiedad `templates`
   } catch (error) {
     console.error(error);
@@ -69,5 +77,13 @@ const handleTemplateSelection = (selectedTemplate) => {
         gap: 20px;
         width: 100%;
     }
+
+    
+.loading_container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 50px 0;
+}
     
 </style>

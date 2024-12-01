@@ -9,15 +9,15 @@
       }"><router-link to="/mapping-settings/invoice-template">Invoice template<i class="pi pi-chevron-right"></i></router-link></li>
       <li
       :class="{
-        active: $route.path === '/mapping-settings/mapping'
+        active: $route.path === '/mapping-settings/mapping' 
+        || $route.path.includes('/invoice-template/new') 
+        || $route.path.includes('/invoice-template/edit')
+        || $route.path.includes('/invoice-template/existing')
       }"
       ><router-link to="/mapping-settings/mapping">Mapping<i class="pi pi-chevron-right"></i></router-link></li>
       <li :class="{
         active: $route.path === '/mapping-settings/correction-rules'
       }"><router-link to="/mapping-settings/correction-rules">Correction Rules<i class="pi pi-chevron-right"></i></router-link></li>
-      <li :class="{
-        active: $route.path === '/mapping-settings/finish'
-      }"><router-link to="/mapping-settings/finish">Finish <i class="pi pi-chevron-right"></i></router-link></li>
     </ul>
   </div>
 </template>
@@ -58,6 +58,8 @@
         &.active {
           background-color: #f1f1f1;
         }
+
+        pointer-events: none;
     }
     }
 </style>

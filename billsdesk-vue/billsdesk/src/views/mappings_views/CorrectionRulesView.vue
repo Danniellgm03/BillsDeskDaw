@@ -1,104 +1,109 @@
 <template>
   <div>
     <h2>Correction Rules for Template:</h2>
-    <p><strong>
-        {{ invoiceTemplate?.template_name }}
-    </strong></p>
-
-
-    <!-- Formulario -->
-    <form @submit.prevent="saveCorrectionRule">
-      <h3>Create or Edit Correction Rule</h3>
-
-      <!-- Nombre de la regla -->
-      <div class="form-group">
-        <label for="rule_name">Rule Name</label>
-        <InputText type="text" v-model="ruleData.rule_name" placeholder="Enter rule name" />
-      </div>
-
-      <!-- Condiciones -->
-      <div class="form-group conditions">
-        <label for="conditions">Conditions</label>
-        <div v-for="(condition, index) in ruleData.conditions" :key="index" class="condition">
-          <InputText v-model="condition.field" placeholder="Field" />
-          <InputText v-model="condition.operator" placeholder="Operator" />
-          <InputText v-model="condition.value" placeholder="Value" />
-          <button type="button" @click="removeCondition(index)" class="buttonremove">Remove Condition</button>
+    
+    <div v-if="!loading">
+      <p><strong>
+          {{ invoiceTemplate?.template_name }}
+      </strong></p>
+  
+  
+      <!-- Formulario -->
+      <form @submit.prevent="saveCorrectionRule" v-if="!loading">
+        <h3>Create or Edit Correction Rule</h3>
+  
+        <!-- Nombre de la regla -->
+        <div class="form-group">
+          <label for="rule_name">Rule Name</label>
+          <InputText type="text" v-model="ruleData.rule_name" placeholder="Enter rule name" />
         </div>
-        <button type="button" @click="addCondition" class="button_add">Add Condition</button>
-      </div>
-
-      <!-- Correcciones -->
-      <div class="form-group corrections">
-        <label for="corrections">Corrections</label>
-        <div v-for="(correction, index) in ruleData.corrections" :key="index" class="correction">
-          <InputText v-model="correction.field" placeholder="Field" />
-          <InputText v-model="correction.new_column" placeholder="New Column (Optional)" />
-          <InputText v-model="correction.action" placeholder="Action (update, subtract, etc.)" />
-
-          <label>Correction Values</label>
-          <div v-for="(value, idx) in correction.value" :key="idx" class="value">
-            <InputText v-model="value.min" placeholder="Min" />
-            <InputText v-model="value.max" placeholder="Max" />
-            <InputText v-model="value.step" placeholder="Step (Optional)" />
-            <InputText v-model="value.value" placeholder="Value" />
-            <button type="button" @click="removeCorrectionValue(correction, idx)" class="buttonremove">Remove Value</button>
+  
+        <!-- Condiciones -->
+        <div class="form-group conditions">
+          <label for="conditions">Conditions</label>
+          <div v-for="(condition, index) in ruleData.conditions" :key="index" class="condition">
+            <InputText v-model="condition.field" placeholder="Field" />
+            <InputText v-model="condition.operator" placeholder="Operator" />
+            <InputText v-model="condition.value" placeholder="Value" />
+            <button type="button" @click="removeCondition(index)" class="buttonremove">Remove Condition</button>
           </div>
-          <button type="button" @click="addCorrectionValue(correction)" class="button_add">Add Value</button>
-          <button type="button" @click="removeCorrection(index)" class="buttonremove">Remove Correction</button>
+          <button type="button" @click="addCondition" class="button_add">Add Condition</button>
         </div>
-        <button type="button" @click="addCorrection" class="button_add">Add Correction</button>
+  
+        <!-- Correcciones -->
+        <div class="form-group corrections">
+          <label for="corrections">Corrections</label>
+          <div v-for="(correction, index) in ruleData.corrections" :key="index" class="correction">
+            <InputText v-model="correction.field" placeholder="Field" />
+            <InputText v-model="correction.new_column" placeholder="New Column (Optional)" />
+            <InputText v-model="correction.action" placeholder="Action (update, subtract, etc.)" />
+  
+            <label>Correction Values</label>
+            <div v-for="(value, idx) in correction.value" :key="idx" class="value">
+              <InputText v-model="value.min" placeholder="Min" />
+              <InputText v-model="value.max" placeholder="Max" />
+              <InputText v-model="value.step" placeholder="Step (Optional)" />
+              <InputText v-model="value.value" placeholder="Value" />
+              <button type="button" @click="removeCorrectionValue(correction, idx)" class="buttonremove">Remove Value</button>
+            </div>
+            <button type="button" @click="addCorrectionValue(correction)" class="button_add">Add Value</button>
+            <button type="button" @click="removeCorrection(index)" class="buttonremove">Remove Correction</button>
+          </div>
+          <button type="button" @click="addCorrection" class="button_add">Add Correction</button>
+        </div>
+  
+        <button type="submit">Save Correction Rule</button>
+      </form>
+  
+      <div v-if="correctionRules.length > 0 " class="correction-rules-container">
+          <h3>Correction Rule Created</h3>
+          <div v-for="(rule, index) in correctionRules" :key="index" class="correction-rule-card">
+              <div class="rule-header">
+              <h4>{{ rule.rule_name }}</h4>
+              <button type="button" class="delete-button" @click="deleteRule(index)">Delete Rule</button>
+              </div>
+              
+              <div class="rule-section">
+              <p><strong>Conditions:</strong></p>
+              <ul class="conditions-list">
+                  <li v-for="(condition, idx) in rule.conditions" :key="idx" class="condition-item">
+                  <span>{{ condition.field }}</span>
+                  <span>{{ condition.operator }}</span>
+                  <span>{{ condition.value }}</span>
+                  </li>
+              </ul>
+              </div>
+  
+              <div class="rule-section">
+              <p><strong>Corrections:</strong></p>
+              <ul class="corrections-list">
+                  <li v-for="(correction, idx) in rule.corrections" :key="idx" class="correction-item">
+                  <div class="correction-info">
+                      <span><strong>Field:</strong> {{ correction.field }}</span>
+                      <span><strong>New Field:</strong> {{ correction.new_column }}</span>
+                      <span><strong>Action:</strong> {{ correction.action }}</span>
+                  </div>
+                  <ul class="values-list">
+                      <li v-for="(value, i) in correction.value" :key="i" class="value-item">
+                      <span><strong>Min:</strong> {{ value.min }}</span>
+                      <span><strong>Max:</strong> {{ value.max }}</span>
+                      <span><strong>Step:</strong> {{ value.step || 'N/A' }}</span>
+                      <span><strong>Value:</strong> {{ value.value }}</span>
+                      </li>
+                  </ul>
+                  </li>
+              </ul>
+              </div>
+          </div>
       </div>
-
-      <button type="submit">Save Correction Rule</button>
-    </form>
-
-
-    <div v-if="correctionRules.length > 0" class="correction-rules-container">
-        <h3>Correction Rule Created</h3>
-        <div v-for="(rule, index) in correctionRules" :key="index" class="correction-rule-card">
-            <div class="rule-header">
-            <h4>{{ rule.rule_name }}</h4>
-            <button type="button" class="delete-button" @click="deleteRule(index)">Delete Rule</button>
-            </div>
-            
-            <div class="rule-section">
-            <p><strong>Conditions:</strong></p>
-            <ul class="conditions-list">
-                <li v-for="(condition, idx) in rule.conditions" :key="idx" class="condition-item">
-                <span>{{ condition.field }}</span>
-                <span>{{ condition.operator }}</span>
-                <span>{{ condition.value }}</span>
-                </li>
-            </ul>
-            </div>
-
-            <div class="rule-section">
-            <p><strong>Corrections:</strong></p>
-            <ul class="corrections-list">
-                <li v-for="(correction, idx) in rule.corrections" :key="idx" class="correction-item">
-                <div class="correction-info">
-                    <span><strong>Field:</strong> {{ correction.field }}</span>
-                    <span><strong>New Field:</strong> {{ correction.new_column }}</span>
-                    <span><strong>Action:</strong> {{ correction.action }}</span>
-                </div>
-                <ul class="values-list">
-                    <li v-for="(value, i) in correction.value" :key="i" class="value-item">
-                    <span><strong>Min:</strong> {{ value.min }}</span>
-                    <span><strong>Max:</strong> {{ value.max }}</span>
-                    <span><strong>Step:</strong> {{ value.step || 'N/A' }}</span>
-                    <span><strong>Value:</strong> {{ value.value }}</span>
-                    </li>
-                </ul>
-                </li>
-            </ul>
-            </div>
-        </div>
+  
+      <!-- button to route finish -->
+      <button @click="fetchSaveInvoice" :disabled="loading">Finish Mapping</button>
+      
     </div>
-
-    <!-- button to route finish -->
-    <button @click="fetchSaveInvoice">Finish Mapping</button>
-
+    <div  class="loading_container" v-else>
+      <LoadingTemplate />
+    </div>
 
   </div>
 </template>
@@ -110,8 +115,14 @@
     import Cookies from 'js-cookie';
     import InputText from 'primevue/inputtext';
     import { useRouter } from 'vue-router';
+    import LoadingTemplate from '@/components/LoadingTemplate.vue';
+    import { useNotificationService } from '@/utils/notificationService';
+
+    const { notify } = useNotificationService();
 
     const router = useRouter();
+
+    const loading = ref(false);
 
     const invoiceTemplateStore = useInvoiceTemplateStore();
     const invoiceTemplate = computed(() => invoiceTemplateStore.template);
@@ -139,14 +150,17 @@
     // Cargar las Correction Rules desde el endpoint
     const fetchCorrectionRules = async () => {
         try {
+            loading.value = true;
             const response = await fetch(`http://localhost:8000/api/company/invoices/template/${invoiceTemplate.value.template_id}/correction-rules`,{
                 headers: { Authorization: `Bearer ${Cookies.get('authToken')}` },
             }
             );
             const data = await response.json();
+            loading.value = false;
             return data
         } catch (error) {
             console.error('Error fetching correction rules:', error);
+            return [];
         }
     };
 
@@ -162,6 +176,7 @@
 
     const saveCorrectionRule = async () => {
         try {
+            loading.value = true;
             const response = await fetch(`http://localhost:8000/api/company/correction-rules`, {
                 method: 'POST',
                 headers: {
@@ -171,7 +186,6 @@
                 body: JSON.stringify(ruleData.value),
             });
             const data = await response.json();
-            console.log('Saved correction rule:', data);
 
             ruleData.value = {
                 rule_name: '',
@@ -184,8 +198,21 @@
             // Actualizar las reglas de corrección
             let corrections = await fetchCorrectionRules();
             correctionRules.value = corrections.correction_rules;
+
+            notify({
+                severity: 'success',
+                summary: 'Success',
+                detail: 'Correction rule saved successfully',
+            });
+
+            loading.value = false;
         } catch (error) {
             console.error('Error saving correction rule:', error);
+            notify({
+                severity: 'error',
+                summary: 'Error',
+                detail: 'Error saving correction rule',
+            });
             
         }
     };
@@ -199,6 +226,7 @@
 
     const fetchSaveInvoice = async () => {
         try {
+            loading.value = true;
             const response = await fetch(`http://localhost:8000/api/company/invoices`, {
                 method: 'POST',
                 headers: {
@@ -211,12 +239,24 @@
                 }),
             });
             const data = await response.json();
-            console.log('Saved invoice:', data);
+
+            loading.value = false;
+
+            notify({
+                severity: 'success',
+                summary: 'Success',
+                detail: 'Invoice saved successfully',
+            });
 
             router.push('/corrector');
 
         } catch (error) {
             console.error('Error saving invoice:', error);
+            notify({
+                severity: 'error',
+                summary: 'Error',
+                detail: 'Error saving invoice',
+            });
         }
     }
 </script>

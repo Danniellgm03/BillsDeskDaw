@@ -1,26 +1,31 @@
 <template>
   <div>
     <h3>Mapping View</h3>
-    <div class="mapping_container">
-        <div class="columns_file">
-            <h4>File columns</h4>
-            <div class="file_columns">
-                <div class="column" v-for="header in headersFile" :key="header">
-                    <InputText disabled type="text" :value="header"></InputText>
+    <div v-if="!loading">
+         <div class="mapping_container">
+            <div class="columns_file">
+                <h4>File columns</h4>
+                <div class="file_columns">
+                    <div class="column" v-for="header in headersFile" :key="header">
+                        <InputText disabled type="text" :value="header"></InputText>
+                    </div>
+                </div>
+            </div>
+            <span class="pi pi-arrow-right-arrow-left"></span>
+            <div class="columns_to_map">
+                <h4>Columns to map</h4>
+                <div class="file_columns">
+                    <div class="column" v-for="(header) in headersFile" :key="header">
+                        <InputText type="text" v-model="columnsToMap[header]" />
+                    </div>
                 </div>
             </div>
         </div>
-        <span class="pi pi-arrow-right-arrow-left"></span>
-        <div class="columns_to_map">
-            <h4>Columns to map</h4>
-            <div class="file_columns">
-                <div class="column" v-for="(header) in headersFile" :key="header">
-                    <InputText type="text" v-model="columnsToMap[header]" />
-                </div>
-            </div>
-        </div>
+        <button class="button_continue"><router-link to="/mapping-settings/invoice-template/new">Continue</router-link></button>
     </div>
-    <button class="button_continue"><router-link to="/mapping-settings/invoice-template/new">Continue</router-link></button>
+    <div class="loading_container" v-else>
+      <LoadingTemplate/>
+    </div>
   </div>
 </template>
 
@@ -29,19 +34,23 @@ import { useMappingColumnsStore } from '@/stores/mappingColumnsStore';
 import { computed, ref, onBeforeMount } from 'vue';
 import Cookies from 'js-cookie';
 import InputText from 'primevue/inputtext';
+import LoadingTemplate from '@/components/LoadingTemplate.vue';
 
 const mappingColumnsStore = useMappingColumnsStore();
 const columnsToMap = computed(() => mappingColumnsStore.columns); // Obtener las columnas del store
 
 const headersFile = ref([]);
+const loading = ref(false);
 
 // Obtener los encabezados del archivo
 onBeforeMount(async () => {
+    loading.value = true;
     const headers = await getFileHeaders();
     headersFile.value = headers.data;
     
     // Inicializar las columnas en el store con valores vacíos
     mappingColumnsStore.setColumns(headers.data);
+    loading.value = false;
 });
 
 // Obtener las cabeceras del archivo
@@ -120,4 +129,13 @@ const getFileHeaders = async () => {
         display: block;
     }
 }
+
+
+.loading_container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 50px 0;
+    }
+
 </style>

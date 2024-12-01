@@ -3,9 +3,9 @@
         <form action="" @submit.prevent="createInvoiceTemplate">
             <div class="form-group">
                 <label for="template_name">Template name</label>
-                <input type="text" id="template_name" v-model="invoiceTemplateJson.template_name">
+                <InputText type="text" id="template_name" v-model="invoiceTemplateJson.template_name" :disabled="loading" />
             </div>
-            <button type="submit">Save</button>
+            <button type="submit" :disabled="loading">Save</button>
         </form>
     </div>
 </template>
@@ -16,9 +16,16 @@ import { useInvoiceTemplateStore } from '@/stores/invoiceTemplaceStore';
 import { computed, ref } from 'vue';
 import Cookies from 'js-cookie';
 import { useRouter } from 'vue-router';  // Asegúrate de importar useRouter
+import InputText from 'primevue/inputtext';
+import { useNotificationService } from '@/utils/notificationService';
+
+const { notify } = useNotificationService();
+
 
 // Inicializa el router
 const router = useRouter();
+
+const loading = ref(false);
 
 const mappingColumnsStore = useMappingColumnsStore();
 const columnsToMap = computed(() => mappingColumnsStore.columns);
@@ -36,8 +43,8 @@ const invoiceTemplateJson = ref({
 });
 
 const createInvoiceTemplate = async () => {
-    console.log(JSON.stringify(invoiceTemplateJson.value));
     try {
+        loading.value = true;
         const response = await fetch('http://localhost:8000/api/company/invoice-templates', {
             method: 'POST',
             headers: {
@@ -62,11 +69,24 @@ const createInvoiceTemplate = async () => {
         invoiceTemplateStore.setValidationRules(data.template.validations_rules);
         invoiceTemplateStore.setAggregations(data.template.aggregations);
 
+        notify({
+            severity: 'success',
+            summary: 'Success',
+            detail: 'Invoice template created successfully'
+        });
+
+        
         // Redirigir al usuario a la ruta de "templates existentes"
         router.push('/mapping-settings/invoice-template/existing');
+        loading.value = false;
         
     } catch (error) {
         console.error(error);
+        notify({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Error creating invoice template'
+        });
     }
 };
 </script>
@@ -96,5 +116,10 @@ button {
     border: none;
     border-radius: 5px;
     cursor: pointer;
+
+    &:disabled {
+        background-color: #ccc;
+        cursor: not-allowed;
+    }
 }
 </style>

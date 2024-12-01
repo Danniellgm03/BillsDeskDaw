@@ -4,56 +4,72 @@
       <!-- {{ templateData }} -->
       <div class="form-group">
         <label for="template_name">Template Name</label>
-        <InputText type="text" v-model="templateData.template_name" />
+        <InputText type="text" v-model="templateData.template_name" v-if="!loading" />
+        <Skeleton v-else width="100%" height="30px" />
       </div>
 
       <!-- Column Mappings (simple key-value pairs) -->
       <div class="form-group mapping">
         <label>Column Mappings</label>
-        <div v-for="(value, key, index) in templateData.column_mappings" :key="index">
-          <label><small>Column key: {{ key }}</small></label>
-          <InputText type="text" v-model="templateData.column_mappings[key]" :placeholder="'Column ' + key" /> 
+        <div v-if="!loading">
+          <div v-for="(value, key, index) in templateData.column_mappings" :key="index" >
+            <label><small>Column key: {{ key }}</small></label>
+            <InputText type="text" v-model="templateData.column_mappings[key]" :placeholder="'Column ' + key" /> 
+          </div>
+        </div>
+        <div class="loading_container" v-if="loading">
+            <LoadingTemplate />
         </div>
       </div>
 
       <!-- Formulas -->
       <div class="form-group formulas">
         <label>Formulas</label>
-        <div v-for="(formula, index) in templateData.formulas" :key="index">
-          <InputText type="text" v-model="formula.new_column" placeholder="New Column" />
-          <InputText type="text" v-model="formula.formula" placeholder="Formula" />
-          <button type="button" @click="removeFormula(index)" class="buttonremove">Remove Formula</button>
+        <div v-if="!loading">
+          <div v-for="(formula, index) in templateData.formulas" :key="index">
+            <InputText type="text" v-model="formula.new_column" placeholder="New Column" />
+            <InputText type="text" v-model="formula.formula" placeholder="Formula" />
+            <button type="button" @click="removeFormula(index)" class="buttonremove">Remove Formula</button>
+          </div>
+          <button type="button" @click="addFormula" class="button_add">Add Formula</button>
         </div>
-        <button type="button" @click="addFormula" class="button_add">Add Formula</button>
+        <div class="loading_container" v-else>
+          <LoadingTemplate />
+        </div>
       </div>
 
       <!-- Validation Rules -->
       <div class="form-group">
         <label>Validation Rules</label>
-        <div v-for="(rule, index) in templateData.validation_rules" :key="index">
-          <div>
-            <InputText type="text" v-model="rule.field" placeholder="Field" />
-            <InputText type="text" v-model="rule.operator" placeholder="Operator" />
-            <InputText type="text" v-model="rule.value" placeholder="Value" />
-            <InputText type="text" v-model="rule.highlight" placeholder="Highlight (Optional)" />
-            <InputText type="text" v-model="rule.row_highlight" placeholder="Row Highlight (Optional)" />
-            <button type="button" @click="removeValidationRule(index)" class="buttonremove">Remove Rule</button>
-          </div>
-          <!-- Conditions -->
-          <div class="conditions_group">
-            <label>Conditions</label>
-            <div v-for="(condition, idx) in rule.conditions" :key="idx" class="condition_inputs">
-              <InputText type="text" v-model="condition.field" placeholder="Condition Field" />
-              <InputText type="text" v-model="condition.operator" placeholder="Condition Operator" />
-              <InputText type="text" v-model="condition.value" placeholder="Condition Value" />
-              <InputText type="text" v-model="condition.highlight" placeholder="Highlight" />
-              <InputText type="text" v-model="condition.row_highlight" placeholder="Row Highlight (Optional)" class="optional" />
-              <button type="button" @click="removeCondition(rule, idx)" class="buttonremove">Remove Condition</button>
+        <div v-if="!loading">
+          <div v-for="(rule, index) in templateData.validation_rules" :key="index">
+            <div>
+              <InputText type="text" v-model="rule.field" placeholder="Field" />
+              <InputText type="text" v-model="rule.operator" placeholder="Operator" />
+              <InputText type="text" v-model="rule.value" placeholder="Value" />
+              <InputText type="text" v-model="rule.highlight" placeholder="Highlight (Optional)" />
+              <InputText type="text" v-model="rule.row_highlight" placeholder="Row Highlight (Optional)" />
+              <button type="button" @click="removeValidationRule(index)" class="buttonremove">Remove Rule</button>
             </div>
-            <button type="button" @click="addCondition(rule)" class="button_add condition">Add Condition</button>
+            <!-- Conditions -->
+            <div class="conditions_group">
+              <label>Conditions</label>
+              <div v-for="(condition, idx) in rule.conditions" :key="idx" class="condition_inputs">
+                <InputText type="text" v-model="condition.field" placeholder="Condition Field" />
+                <InputText type="text" v-model="condition.operator" placeholder="Condition Operator" />
+                <InputText type="text" v-model="condition.value" placeholder="Condition Value" />
+                <InputText type="text" v-model="condition.highlight" placeholder="Highlight" />
+                <InputText type="text" v-model="condition.row_highlight" placeholder="Row Highlight (Optional)" class="optional" />
+                <button type="button" @click="removeCondition(rule, idx)" class="buttonremove">Remove Condition</button>
+              </div>
+              <button type="button" @click="addCondition(rule)" class="button_add condition">Add Condition</button>
+            </div>
           </div>
+          <button type="button" @click="addValidationRule" class="button_add">Add Validation Rule</button>
         </div>
-        <button type="button" @click="addValidationRule" class="button_add">Add Validation Rule</button>
+        <div class="loading_container" v-else>
+          <LoadingTemplate />
+        </div>
       </div>
 
 
@@ -61,16 +77,21 @@
       <!-- Aggregations -->
       <div class="form-group aggregations">
         <label>Aggregations</label>
-        <div v-for="(aggregation, index) in templateData.aggregations" :key="index">
-          <InputText type="text" v-model="aggregation.type" placeholder="Aggregation Type" />
-          <InputText type="text" v-model="aggregation.fields" placeholder="Fields (comma-separated)" />
-          <button type="button" @click="removeAggregation(index)" class="buttonremove">Remove Aggregation</button>
+        <div v-if="!loading">
+          <div v-for="(aggregation, index) in templateData.aggregations" :key="index">
+            <InputText type="text" v-model="aggregation.type" placeholder="Aggregation Type" />
+            <InputText type="text" v-model="aggregation.fields" placeholder="Fields (comma-separated)" />
+            <button type="button" @click="removeAggregation(index)" class="buttonremove">Remove Aggregation</button>
+          </div>
+          <button type="button" @click="addAggregation"  class="button_add">Add Aggregation</button>
         </div>
-        <button type="button" @click="addAggregation"  class="button_add">Add Aggregation</button>
+        <div class="loading_container" v-else>
+          <LoadingTemplate />
+        </div>
       </div>
 
-      <button type="submit">Save Template</button>
-      <button type="submit" @click.prevent="saveAndContinue()" style="margin-left: 10px;">Save and Finish</button>
+      <button type="submit" :disabled="loading">Save Template</button>
+      <button type="submit" @click.prevent="saveAndContinue()" style="margin-left: 10px;" :disabled="loading">Save and Finish</button>
     </form>
   </div>
 </template>
@@ -81,6 +102,14 @@ import { useRoute, useRouter } from 'vue-router';
 import { useInvoiceTemplateStore } from '@/stores/invoiceTemplaceStore'; // Asegúrate de que el store esté configurado para manejar el template
 import Cookies from 'js-cookie';
 import InputText from 'primevue/inputtext';
+import Skeleton from 'primevue/skeleton';
+import LoadingTemplate from '@/components/LoadingTemplate.vue';
+import { useNotificationService } from '@/utils/notificationService';
+
+const { notify } = useNotificationService();
+
+
+const loading = ref(false);
 
 const route = useRoute();
 const router = useRouter();
@@ -101,15 +130,23 @@ const saveAndContinue = async () => {
 
 const fetchTemplateData = async () => {
   try {
+    loading.value = true;
     const response = await fetch(`http://localhost:8000/api/company/invoice-templates/${route.params.id}`, {
       headers: {
         'Authorization': `Bearer ${Cookies.get('authToken')}`,
       },
     });
     const data = await response.json();
+    loading.value = false;
     return data;
   } catch (error) {
     console.error('Error fetching template:', error);
+    notify({
+      severity: 'error', // 'success', 'info', 'warn', 'error'
+      summary: 'The operation could not be completed',
+      detail: 'An error occurred while fetching the template',
+      life: 3000, // Tiempo de duración en ms
+    });
   }
 };
 
@@ -208,12 +245,18 @@ const cleanValidationRules = (rules) => {
 const processAggregations = (aggregations) => {
   return aggregations.map((aggregation) => ({
     ...aggregation,
-    fields: aggregation.fields.split(',').map((field) => field.trim()) // Convierte la cadena en un arreglo
+    fields: typeof aggregation.fields === 'string'
+      ? aggregation.fields.split(',').map((field) => field.trim()) // Convierte la cadena en un arreglo
+      : Array.isArray(aggregation.fields)
+        ? aggregation.fields // Si ya es un array, lo deja como está
+        : [] // Si no es ni string ni array, devuelve un arreglo vacío
   }));
 };
 
 const saveTemplate = async () => {
   try {
+
+    loading.value = true;
     // Procesa `validation_rules` y `aggregations` antes de enviar
     const processedTemplateData = {
       ...templateData.value,
@@ -221,7 +264,6 @@ const saveTemplate = async () => {
       aggregations: processAggregations(templateData.value.aggregations),
     };
 
-    console.log('Saving template:',  JSON.stringify(processedTemplateData));
 
     const response = await fetch(`http://localhost:8000/api/company/invoice-templates/${route.params.id}`, {
       method: 'PUT',
@@ -233,12 +275,30 @@ const saveTemplate = async () => {
     });
 
     if (response.ok) {
-      alert('Template saved successfully!');
+      notify({
+        severity: 'success', // 'success', 'info', 'warn', 'error'
+        summary: 'Template saved successfully!',
+        detail: 'The template has been saved successfully',
+        life: 3000, // Tiempo de duración en ms
+      });
     } else {
-      alert('Error saving template!');
+       notify({
+        severity: 'error', // 'success', 'info', 'warn', 'error'
+        summary: 'The operation could not be completed',
+        detail: 'An error occurred while saving the template',
+        life: 3000, // Tiempo de duración en ms
+      });
     }
+
+    loading.value = false;
   } catch (error) {
     console.error('Error saving template:', error);
+    notify({
+      severity: 'error', // 'success', 'info', 'warn', 'error'
+      summary: 'The operation could not be completed',
+      detail: 'An error occurred while saving the template',
+      life: 3000, // Tiempo de duración en ms
+    });
   }
 };
 </script>
@@ -385,6 +445,15 @@ const saveTemplate = async () => {
   input.optional {
     border: 1px dashed #ccc;
     background-color: #f9f9f9;
+  }
+
+  button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+
+    &:hover {
+      background-color: #ccc;
+    }
   }
 
 </style>

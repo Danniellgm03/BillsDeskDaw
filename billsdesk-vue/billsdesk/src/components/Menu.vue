@@ -10,16 +10,8 @@
                     <ul>
                         <li>
                             <router-link
-                                to="/"
-                                :class="{ 'active-link': $route.path === '/' }"
-                            >
-                                <i class="pi pi-th-large"></i> Overview
-                            </router-link>
-                        </li>
-                        <li>
-                            <router-link
                                 to="/file-manager"
-                                :class="{ 'active-link': $route.path === '/file-manager' }"
+                                :class="{ 'active-link': $route.path === '/file-manager' ||  $route.path === '/' }"
                             >
                                 <i class="pi pi-folder"></i> File manager
                             </router-link>
@@ -27,7 +19,7 @@
                         <li>
                             <router-link
                                 to="/corrector"
-                                :class="{ 'active-link': $route.path === '/corrector' }"
+                                :class="{ 'active-link': $route.path.includes('/corrector') }"
                             >
                                 <i class="pi pi-file-check"></i> Corrector
                             </router-link>
@@ -35,7 +27,7 @@
                         <li>
                             <router-link
                                 to="/mapping-settings"
-                                :class="{ 'active-link': $route.path === '/mapping-settings' }"
+                                :class="{ 'active-link': $route.path.includes('/mapping-settings') }"
                             >
                                 <i class="pi pi-sitemap"></i> Mapping
                             </router-link>
@@ -48,7 +40,7 @@
                         <li>
                             <router-link
                                 to="/settings"
-                                :class="{ 'active-link': $route.path === '/settings' }"
+                                :class="{ 'active-link': $route.path.includes('/settings') }"
                             >
                                 <i class="pi pi-cog"></i> Settings
                             </router-link>
