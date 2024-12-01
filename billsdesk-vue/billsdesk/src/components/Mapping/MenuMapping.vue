@@ -4,14 +4,14 @@
       <li :class="{
         active: $route.path === '/mapping-settings/selecting-files'
       }"><router-link to="/mapping-settings/selecting-files">Selecting file<i class="pi pi-chevron-right"></i></router-link></li>
+      <li :class="{
+        active: $route.path === '/mapping-settings/invoice-template'
+      }"><router-link to="/mapping-settings/invoice-template">Invoice template<i class="pi pi-chevron-right"></i></router-link></li>
       <li
       :class="{
         active: $route.path === '/mapping-settings/mapping'
       }"
       ><router-link to="/mapping-settings/mapping">Mapping<i class="pi pi-chevron-right"></i></router-link></li>
-      <li :class="{
-        active: $route.path === '/mapping-settings/invoice-template'
-      }"><router-link to="/mapping-settings/invoice-template">Invoice template<i class="pi pi-chevron-right"></i></router-link></li>
       <li :class="{
         active: $route.path === '/mapping-settings/correction-rules'
       }"><router-link to="/mapping-settings/correction-rules">Correction Rules<i class="pi pi-chevron-right"></i></router-link></li>

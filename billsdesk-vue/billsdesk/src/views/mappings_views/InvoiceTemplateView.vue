@@ -7,7 +7,7 @@
             </p>
             <div class="options"> <!-- Las opciones solo se mostrarán si showOptions es true -->
                 <div class="option">
-                    <router-link to="/mapping-settings/invoice-template/new" @click="hideOptions">Create new template</router-link>
+                    <router-link to="/mapping-settings/mapping" @click="hideOptions">Create new template</router-link>
                 </div>
                 <div class="option">
                     <router-link to="/mapping-settings/invoice-template/existing" @click="hideOptions">Use existing template</router-link>

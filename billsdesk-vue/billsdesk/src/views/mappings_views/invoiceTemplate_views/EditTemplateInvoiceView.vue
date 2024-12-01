@@ -1,29 +1,30 @@
 <template>
   <div>
     <form @submit.prevent="saveTemplate">
-      Template Name
+      <!-- {{ templateData }} -->
       <div class="form-group">
         <label for="template_name">Template Name</label>
-        <input type="text" v-model="templateData.template_name" />
+        <InputText type="text" v-model="templateData.template_name" />
       </div>
 
       <!-- Column Mappings (simple key-value pairs) -->
-      <div class="form-group">
+      <div class="form-group mapping">
         <label>Column Mappings</label>
         <div v-for="(value, key, index) in templateData.column_mappings" :key="index">
-          <input v-model="templateData.column_mappings[key]" :placeholder="'Column ' + key" />
+          <label><small>Column key: {{ key }}</small></label>
+          <InputText type="text" v-model="templateData.column_mappings[key]" :placeholder="'Column ' + key" /> 
         </div>
       </div>
 
       <!-- Formulas -->
-      <div class="form-group">
+      <div class="form-group formulas">
         <label>Formulas</label>
         <div v-for="(formula, index) in templateData.formulas" :key="index">
-          <input v-model="formula.new_column" placeholder="New Column" />
-          <input v-model="formula.formula" placeholder="Formula" />
-          <button type="button" @click="removeFormula(index)">Remove Formula</button>
+          <InputText type="text" v-model="formula.new_column" placeholder="New Column" />
+          <InputText type="text" v-model="formula.formula" placeholder="Formula" />
+          <button type="button" @click="removeFormula(index)" class="buttonremove">Remove Formula</button>
         </div>
-        <button type="button" @click="addFormula">Add Formula</button>
+        <button type="button" @click="addFormula" class="button_add">Add Formula</button>
       </div>
 
       <!-- Validation Rules -->
@@ -31,35 +32,41 @@
         <label>Validation Rules</label>
         <div v-for="(rule, index) in templateData.validation_rules" :key="index">
           <div>
-            <input v-model="rule.field" placeholder="Field" />
-            <input v-model="rule.operator" placeholder="Operator" />
-            <input v-model="rule.value" placeholder="Value" />
-            <button type="button" @click="removeValidationRule(index)">Remove Rule</button>
+            <InputText type="text" v-model="rule.field" placeholder="Field" />
+            <InputText type="text" v-model="rule.operator" placeholder="Operator" />
+            <InputText type="text" v-model="rule.value" placeholder="Value" />
+            <InputText type="text" v-model="rule.highlight" placeholder="Highlight (Optional)" />
+            <InputText type="text" v-model="rule.row_highlight" placeholder="Row Highlight (Optional)" />
+            <button type="button" @click="removeValidationRule(index)" class="buttonremove">Remove Rule</button>
           </div>
-          <div>
+          <!-- Conditions -->
+          <div class="conditions_group">
             <label>Conditions</label>
-            <div v-for="(condition, idx) in rule.conditions" :key="idx">
-              <input v-model="condition.field" placeholder="Condition Field" />
-              <input v-model="condition.operator" placeholder="Condition Operator" />
-              <input v-model="condition.value" placeholder="Condition Value" />
-              <input v-model="condition.highlight" placeholder="Highlight" />
-              <button type="button" @click="removeCondition(rule, idx)">Remove Condition</button>
+            <div v-for="(condition, idx) in rule.conditions" :key="idx" class="condition_inputs">
+              <InputText type="text" v-model="condition.field" placeholder="Condition Field" />
+              <InputText type="text" v-model="condition.operator" placeholder="Condition Operator" />
+              <InputText type="text" v-model="condition.value" placeholder="Condition Value" />
+              <InputText type="text" v-model="condition.highlight" placeholder="Highlight" />
+              <InputText type="text" v-model="condition.row_highlight" placeholder="Row Highlight (Optional)" class="optional" />
+              <button type="button" @click="removeCondition(rule, idx)" class="buttonremove">Remove Condition</button>
             </div>
-            <button type="button" @click="addCondition(rule)">Add Condition</button>
+            <button type="button" @click="addCondition(rule)" class="button_add condition">Add Condition</button>
           </div>
         </div>
-        <button type="button" @click="addValidationRule">Add Validation Rule</button>
+        <button type="button" @click="addValidationRule" class="button_add">Add Validation Rule</button>
       </div>
 
+
+
       <!-- Aggregations -->
-      <div class="form-group">
+      <div class="form-group aggregations">
         <label>Aggregations</label>
         <div v-for="(aggregation, index) in templateData.aggregations" :key="index">
-          <input v-model="aggregation.type" placeholder="Aggregation Type" />
-          <input v-model="aggregation.fields" placeholder="Fields (comma-separated)" />
-          <button type="button" @click="removeAggregation(index)">Remove Aggregation</button>
+          <InputText type="text" v-model="aggregation.type" placeholder="Aggregation Type" />
+          <InputText type="text" v-model="aggregation.fields" placeholder="Fields (comma-separated)" />
+          <button type="button" @click="removeAggregation(index)" class="buttonremove">Remove Aggregation</button>
         </div>
-        <button type="button" @click="addAggregation">Add Aggregation</button>
+        <button type="button" @click="addAggregation"  class="button_add">Add Aggregation</button>
       </div>
 
       <button type="submit">Save Template</button>
@@ -72,6 +79,7 @@ import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { useInvoiceTemplateStore } from '@/stores/invoiceTemplaceStore'; // Asegúrate de que el store esté configurado para manejar el template
 import Cookies from 'js-cookie';
+import InputText from 'primevue/inputtext';
 
 const route = useRoute();
 const templateData = ref({
@@ -121,7 +129,9 @@ const addValidationRule = () => {
     field: '',
     operator: '',
     value: '',
-    conditions: []
+    highlight: '',
+    row_highlight: '',
+    conditions: [] // Asegúrate de inicializar esto como un arreglo vacío
   });
 };
 
@@ -132,11 +142,15 @@ const removeValidationRule = (index) => {
 
 // Add Condition to Rule
 const addCondition = (rule) => {
+  if (!Array.isArray(rule.conditions)) {
+    rule.conditions = [];
+  }
   rule.conditions.push({
     field: '',
     operator: '',
     value: '',
-    highlight: ''
+    highlight: '',
+    row_highlight: ''
   });
 };
 
@@ -182,27 +196,147 @@ const saveTemplate = async () => {
 </script>
 
 <style scoped lang="scss">
-.form-group {
-  margin-bottom: 20px;
-}
+  form{
+    padding: 20px 10px; 
+  }
+  .form-group {
+    margin-bottom: 20px;
+    background-color: #f7f7f7;
+    padding: 20px;
+    border-radius: 5px;
 
-input {
-  margin: 5px;
-  padding: 5px;
-  width: 100%;
-}
+    label {
+      display: block;
+      margin-bottom: 5px;
+    }
 
-button {
-  margin-top: 10px;
-  padding: 10px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
+    input {
+      margin: 5px;
+      padding: 5px;
+      width: 100%;
+    }
 
-button:hover {
-  background-color: #0056b3;
-}
+    &.aggregations {
+      div {
+        margin-top: 10px;
+        margin-bottom: 10px;
+        padding: 10px;
+        background-color: #f0f0f0;
+        input {
+          margin: 5px;
+          padding: 5px;
+          width: 40%;
+        }
+      }
+    }
+
+    &.mapping {
+      div{
+        label small{
+          color: #666;
+        }
+      }
+    }
+
+    &.formulas{
+     
+      div{
+        margin-bottom: 10px;
+        input{
+          margin: 5px;
+          padding: 5px;
+          width: 40%;
+        }
+      }
+    }
+
+    .conditions_group {
+      margin-top: 10px;
+      padding: 10px;
+      background-color: #f0f0f0;
+      border-radius: 5px;
+
+      label {
+        display: block;
+        margin-bottom: 5px;
+      }
+
+      input {
+        margin: 5px;
+        padding: 5px;
+        width: 100%;
+      }
+
+      .condition_inputs{
+        margin-top: 10px;
+        padding: 10px;
+        background-color: #f7f7f7;
+        border-radius: 5px;
+
+        input {
+          margin: 5px;
+          padding: 5px;
+          width: 100%;
+        }
+      }
+    }
+  }
+
+  input {
+    margin: 5px;
+    padding: 5px;
+    width: 100%;
+  }
+
+  .button_add {
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+
+    &:hover {
+      background-color: #218838;
+    }
+
+    &.condition {
+      background-color: #29753b;
+    }
+  }
+
+  .buttonremove {
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+
+    &:hover {
+      background-color: #c82333;
+    }
+  }
+
+  button[type="submit"] {
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+
+    &:hover {
+      background-color: #0056b3;
+    }
+  }
+
+  input.optional {
+    border: 1px dashed #ccc;
+    background-color: #f9f9f9;
+  }
+
 </style>

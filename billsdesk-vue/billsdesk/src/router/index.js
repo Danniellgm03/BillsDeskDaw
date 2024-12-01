@@ -45,7 +45,8 @@ const routes = [
               { path: 'existing', component: ExistingTemplateInvoiceView },  // Subruta para usar un template existente
               { path: 'edit/:id', component: EditTemplateInvoice },  // Subruta para editar un template existente
             ],
-          },          { path: 'correction-rules', component: CorrectionRules },
+          },          
+          { path: 'correction-rules', component: CorrectionRules },
           { path: 'finish', component: Finish }
         ]
       },

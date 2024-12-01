@@ -20,7 +20,7 @@
             </div>
         </div>
     </div>
-    <button class="button_continue"><router-link to="/mapping-settings/invoice-template">Continue</router-link></button>
+    <button class="button_continue"><router-link to="/mapping-settings/invoice-template/new">Continue</router-link></button>
   </div>
 </template>
 

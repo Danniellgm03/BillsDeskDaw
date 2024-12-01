@@ -89,6 +89,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/', [InvoiceTemplateController::class, 'index']);
         Route::post('/', [InvoiceTemplateController::class, 'create']);
         Route::get('{id}', [InvoiceTemplateController::class, 'show']);
+        Route::put('{id}', [InvoiceTemplateController::class, 'update']);
     });
 
     Route::prefix('/company/correction-rules')->group(function () {
