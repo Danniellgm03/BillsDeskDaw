@@ -206,9 +206,6 @@ const cleanValidationRules = (rules) => {
 };
 
 const processAggregations = (aggregations) => {
-  if (Array.isArray(aggregations)) {
-    return aggregations;
-  }
   return aggregations.map((aggregation) => ({
     ...aggregation,
     fields: aggregation.fields.split(',').map((field) => field.trim()) // Convierte la cadena en un arreglo
@@ -223,6 +220,8 @@ const saveTemplate = async () => {
       validation_rules: cleanValidationRules(templateData.value.validation_rules),
       aggregations: processAggregations(templateData.value.aggregations),
     };
+
+    console.log('Saving template:',  JSON.stringify(processedTemplateData));
 
     const response = await fetch(`http://localhost:8000/api/company/invoice-templates/${route.params.id}`, {
       method: 'PUT',
