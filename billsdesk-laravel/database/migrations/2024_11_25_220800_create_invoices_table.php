@@ -16,9 +16,10 @@ return new class extends Migration
             $table->unsignedBigInteger('company_id'); // Relación con empresas
             $table->unsignedBigInteger('user_id'); // Relación con usuarios
             $table->unsignedBigInteger('file_id'); // Relación con la tabla files
-            $table->enum('status', ['pending', 'corrected', 'rejected'])->default('pending');
+            $table->enum('status', ['pending', 'corrected', 'rejected', 'paid'])->default('pending');
             $table->string('name_invoice')->nullable();
             $table->string('template_id'); // Relación con MongoDB para la plantilla
+            $table->date('date_to_pay')->nullable();
             $table->timestamps();
             $table->foreign('company_id')->references('id')->on('companies')->onDelete('cascade');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');

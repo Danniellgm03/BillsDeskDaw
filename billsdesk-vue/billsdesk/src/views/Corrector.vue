@@ -48,8 +48,14 @@
                     optionLabel="name" optionValue="value" placeholder="Select Status"/>
                     <br>
                     <br>
-                    <button class="save_name" @click="saveNameInvoice">
-                        Save name/status
+                    <label for="date_to_pay"><strong>Date to pay:</strong></label>
+                    <DatePicker v-model="invoiceSelected.date_to_pay"  @update:modelValue="checkDate"/>
+                    <p v-if="dateWarning" style="color: red; font-weight: bold;margin-top: 10px;">
+                        <strong>The payment date has already passed!</strong>
+                    </p>
+                    <br>
+                    <button class="save_name" @click="updateInvoice" style="margin-top: 10px;">
+                        Update
                     </button>
                 </div>
                 <button class="download_button" @click="downloadCorrected(invoiceSelected)">
@@ -76,6 +82,7 @@ import TableCorrector from '@/components/Corrector/TableCorrector.vue';
 import InputText from 'primevue/inputtext';
 import { useNotificationService } from '@/utils/notificationService';
 import Select from 'primevue/select';
+import DatePicker from 'primevue/datepicker';
 
 
 const { notify } = useNotificationService();
@@ -84,7 +91,8 @@ const { notify } = useNotificationService();
 const optionsSelect = ref([
     { name: 'Pending', value: 'pending' },
     { name: 'Corrected', value: 'corrected' },
-    { name: 'Rejected', value: 'rejected' }
+    { name: 'Rejected', value: 'rejected' },
+    { name: 'Paid', value: 'paid'}
 ]);
 
 
@@ -105,6 +113,22 @@ const changeLayout = () => {
     } else {
         layout.value = 'grid';
     }
+};
+
+const dateWarning = ref(false);
+
+const checkDate = (newDate) => {
+    const today = new Date();
+    const selectedDate = new Date(newDate);
+
+    // Comparar fechas (sin considerar hora)
+    if (selectedDate < today.setHours(0, 0, 0, 0)) {
+        dateWarning.value = true; // Muestra la advertencia
+    } else {
+        dateWarning.value = false; // Oculta la advertencia
+    }
+
+    invoiceSelected.value.date_to_pay = newDate;
 };
 
 const correctInvoice = async (invoice) => {
@@ -130,7 +154,7 @@ const searchFile = async () => {
     invoices_loading.value = false;
 };
 
-const saveNameInvoice = async () => {
+const updateInvoice = async () => {
     try{
         const response = await fetch(`http://localhost:8000/api/company/invoices/${invoiceSelected.value.id}`, {
             method: 'PUT',
@@ -141,7 +165,8 @@ const saveNameInvoice = async () => {
             },
             body: JSON.stringify({
                 name_invoice: invoiceSelected.value.name_invoice,
-                status: invoiceSelected.value.status
+                status: invoiceSelected.value.status,
+                date_to_pay: invoiceSelected.value.date_to_pay
             })
         });
 
