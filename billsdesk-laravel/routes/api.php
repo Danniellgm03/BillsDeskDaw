@@ -11,6 +11,7 @@ use App\Http\Controllers\FileController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\InvoiceTemplateController;
 use App\Http\Controllers\CorrectionRuleController;
+use App\Http\Controllers\ContactController;
 
 
 Route::post('/login', [AuthController::class, 'login']);
@@ -99,6 +100,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('{id}', [CorrectionRuleController::class, 'show']);
         Route::put('{id}', [CorrectionRuleController::class, 'update']);
         Route::delete('{id}', [CorrectionRuleController::class, 'destroy']);
+    });
+
+    Route::prefix('/company/contacts')->middleware(['auth:sanctum'])->group(function () {
+        Route::get('/', [ContactController::class, 'index']);
+        Route::post('/', [ContactController::class, 'store']);
+        Route::get('/{contactId}', [ContactController::class, 'show']);
+        Route::put('/{contactId}', [ContactController::class, 'update']);
+        Route::delete('/{contactId}', [ContactController::class, 'destroy']);
     });
 });
 

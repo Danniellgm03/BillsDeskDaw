@@ -181,7 +181,8 @@ class InvoiceController extends Controller
         $validator = Validator::make($request->all(), [
             'name_invoice' => 'string',
             'status' => 'in:pending,corrected,rejected,paid',
-            'date_to_pay' => 'date',
+            'date_to_pay' => 'date|nullable',
+            'contact_id' => 'exists:contacts,id|nullable',
         ]);
 
         if ($validator->fails()) {

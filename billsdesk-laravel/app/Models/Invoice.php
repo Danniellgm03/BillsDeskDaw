@@ -18,6 +18,7 @@ class Invoice extends Model
         'date_to_pay',
         'name_invoice',
         'template_id',
+        'contact_id',
     ];
 
     // Relación con la empresa
@@ -41,5 +42,13 @@ class Invoice extends Model
     public function template()
     {
         return $this->belongsTo(InvoiceTemplate::class, 'template_id', '_id');
+    }
+
+    /**
+     * Relación con Contact.
+     */
+    public function contact()
+    {
+        return $this->belongsTo(Contact::class);
     }
 }
