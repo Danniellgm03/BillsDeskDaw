@@ -15,7 +15,6 @@ class CorrectionRule extends Model
         'rule_name',
         'conditions',
         'corrections',
-        'highlight',
         'template_id',
         'created_at',
         'updated_at',

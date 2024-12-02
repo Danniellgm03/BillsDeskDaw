@@ -15,9 +15,7 @@ class Invoice extends Model
         'user_id',
         'file_id',
         'status',
-        'currency',
-        'total_amount',
-        'saved_amount',
+        'name_invoice',
         'template_id',
     ];
 

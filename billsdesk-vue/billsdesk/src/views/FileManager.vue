@@ -31,11 +31,16 @@
                 </div>
             </div>
             <div :class="['container_files', layout]" v-if="!files_loading">
-                <FileComponenteContent v-for="file in files" :key="file.id" :file="file"
-                    @openDrawer="handleOpenDrawer" @updateFav="handleUpdateFav" />
+                <template v-if="files.length > 0">
+                    <FileComponenteContent v-for="file in files" :key="file.id" :file="file"
+                        @openDrawer="handleOpenDrawer" @updateFav="handleUpdateFav" />
+                </template>
             </div>
             <div class="loading_container" v-else>
                 <LoadingTemplate/>
+            </div>
+            <div v-if="files.length <= 0 && !files_loading" class="container_not_found">
+                <img src="/not_found.webp" alt="not found">
             </div>
         </section>
 

@@ -2,20 +2,28 @@
     <div>
         <div  v-if="!files_loading">
             <h3>Select file:</h3>
-            <div :class="['container_files']">
-            
-               <div class="file"
-                  v-for="file in files"
-                    :key="file.id"
-                    @click="selectFile(file)"
-                    :class="{'selected': selectedFile.id === file.id}"
-               >
-                    <div class="file_name">{{ file.file_name }}</div>
-                    <div class="file_size">{{ file.size }}</div>
-                    <div class="file_date">{{ dateFormated(file.created_at) }}</div>
+            <div  v-if="files.length > 0">
+                <div :class="['container_files']">
+                
+                   <div class="file"
+                      v-for="file in files"
+                        :key="file.id"
+                        @click="selectFile(file)"
+                        :class="{'selected': selectedFile.id === file.id}"
+                   >
+                        <div class="file_name">{{ file.file_name }}</div>
+                        <div class="file_size">{{ file.size }}</div>
+                        <div class="file_date">{{ dateFormated(file.created_at) }}</div>
+                    </div>
                 </div>
+                <button class="button_continue"><router-link to="/mapping-settings/invoice-template">Continue</router-link></button>
             </div>
-             <button class="button_continue"><router-link to="/mapping-settings/invoice-template">Continue</router-link></button>
+            <div v-else class="container_not_found">
+                <img src="/not_found.webp" alt="not found">
+                <button class="button_back">
+                    <router-link to="/file-manager">Upload File</router-link>
+                </button>
+            </div>
         </div>
         <div class="loading_container" v-else>
             <LoadingTemplate/>
@@ -94,6 +102,28 @@ const fetchFiles = async (
 </script>
 
 <style scoped lang='scss'>
+
+    .button_back{
+        margin-top: 20px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+
+        a {
+            color: white;
+            text-decoration: none;
+            width: 100%;
+            height: 100%;
+            padding: 10px 20px;
+            display: block;
+        }
+    }
+
+    .container_not_found{
+        flex-direction: column;
+    }
 
     .container_files {
         display: flex;

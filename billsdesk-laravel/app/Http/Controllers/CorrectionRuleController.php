@@ -7,11 +7,8 @@ use App\Models\CorrectionRule;
 use Illuminate\Support\Facades\Validator;
 use App\Models\InvoiceTemplate;
 
-
 class CorrectionRuleController extends Controller
 {
-
-
     public function index()
     {
         $rules = CorrectionRule::where('company_id', auth()->user()->company_id)->get();
@@ -30,9 +27,7 @@ class CorrectionRuleController extends Controller
 
     public function show($id)
     {
-        $rule = CorrectionRule::where('_id', $id)
-            ->firstOrFail();
-
+        $rule = CorrectionRule::where('_id', $id)->firstOrFail();
         return response()->json($rule);
     }
 
@@ -41,22 +36,20 @@ class CorrectionRuleController extends Controller
         $validator = Validator::make($request->all(), [
             'company_id' => 'required|exists:companies,id',
             'rule_name' => 'required|string|max:255',
-            'conditions' => 'required|array',
-            'corrections' => 'required|array',
+            'conditions' => 'required|array|size:1',
+            'conditions.*' => 'required|array',
+            'corrections' => 'required|array|size:1',
+            'corrections.*' => 'required|array',
             'template_id' => 'required',
         ]);
-
-        $template = InvoiceTemplate::where('_id', $request->input('template_id'))
-            ->where('company_id', auth()->user()->company_id)
-            ->firstOrFail();
-
-        if(!$template){
-            return response()->json(['errors' => 'La plantilla no existe'], 400);
-        }
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 400);
         }
+
+        $template = InvoiceTemplate::where('_id', $request->input('template_id'))
+            ->where('company_id', auth()->user()->company_id)
+            ->firstOrFail();
 
         $rule = CorrectionRule::create([
             'company_id' => auth()->user()->company_id,
@@ -73,8 +66,10 @@ class CorrectionRuleController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'rule_name' => 'nullable|string|max:255',
-            'conditions' => 'nullable|array',
-            'corrections' => 'nullable|array',
+            'conditions' => 'nullable|array|size:1',
+            'conditions.*' => 'required|array',
+            'corrections' => 'nullable|array|size:1',
+            'corrections.*' => 'required|array',
         ]);
 
         if ($validator->fails()) {
@@ -86,7 +81,6 @@ class CorrectionRuleController extends Controller
 
         return response()->json(['message' => 'Regla de corrección actualizada', 'rule' => $rule]);
     }
-
 
     public function destroy($id)
     {

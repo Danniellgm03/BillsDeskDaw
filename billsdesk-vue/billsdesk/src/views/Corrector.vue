@@ -25,6 +25,9 @@
             <div class="loading_container" v-else>
                 <LoadingTemplate/>
             </div>
+            <div v-if="invoices.length <= 0 && !invoices_loading" class="container_not_found">
+               <img src="/not_found.webp" alt="not found">
+            </div>
         </section>
 
 
@@ -37,6 +40,18 @@
             <div v-if="!drawerContentLoading">
                 <p style="margin-bottom: 20px;margin-top: 20px;"><strong>Preview Corrected: </strong></p>
                 <TableCorrector style="margin-bottom: 20px;margin-top: 20px;" :invoiceProccesed="drawerContentInvoice" />
+                <div class="form-group name_invoice_edit">
+                    <label for="name_invoice"><strong>Name Invoice:</strong></label>
+                    <InputText id="name_invoice" v-model="invoiceSelected.name_invoice" />
+                    <label for="status"><strong>Status:</strong></label>
+                    <Select name="status" id="status" v-model="invoiceSelected.status" :options="optionsSelect" 
+                    optionLabel="name" optionValue="value" placeholder="Select Status"/>
+                    <br>
+                    <br>
+                    <button class="save_name" @click="saveNameInvoice">
+                        Save name/status
+                    </button>
+                </div>
                 <button class="download_button" @click="downloadCorrected(invoiceSelected)">
                     <i class="pi pi-download"></i>
                     Download corrected
@@ -58,7 +73,19 @@ import LoadingTemplate from '@/components/LoadingTemplate.vue';
 import InvoiceContentComponent from '@/components/Corrector/InvoiceContentComponent.vue';
 import Drawer from 'primevue/drawer';
 import TableCorrector from '@/components/Corrector/TableCorrector.vue';
+import InputText from 'primevue/inputtext';
+import { useNotificationService } from '@/utils/notificationService';
+import Select from 'primevue/select';
 
+
+const { notify } = useNotificationService();
+
+
+const optionsSelect = ref([
+    { name: 'Pending', value: 'pending' },
+    { name: 'Corrected', value: 'corrected' },
+    { name: 'Rejected', value: 'rejected' }
+]);
 
 
 const loading = ref(true);
@@ -96,9 +123,67 @@ onBeforeMount(async () => {
     invoices_loading.value = false;
 });
 
-const getInvoices = async () => {
+const searchFile = async () => {
+    invoices_loading.value = true;
+    const data = await getInvoices(search_input.value);
+    invoices.value = data;
+    invoices_loading.value = false;
+};
+
+const saveNameInvoice = async () => {
+    try{
+        const response = await fetch(`http://localhost:8000/api/company/invoices/${invoiceSelected.value.id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Authorization': Cookies.get('authToken') ?? ''
+            },
+            body: JSON.stringify({
+                name_invoice: invoiceSelected.value.name_invoice,
+                status: invoiceSelected.value.status
+            })
+        });
+
+        const data = await response.json();
+
+        if(data.errors){
+            notify({
+                severity: 'error',
+                summary: 'Error',
+                detail: 'An error occurred',
+            });
+        }else{
+            notify({
+                severity: 'success',
+                summary: 'Success',
+                detail: 'Correction rule saved successfully',
+            });
+        }
+
+    } catch (error) {
+        console.log(error);
+        notify({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'An error occurred',
+        });
+    }
+    
+};
+
+const getInvoices = async (
+    search
+) => {
+
+    let url = 'http://localhost:8000/api/company/invoices';
+
+    if (search) {
+        url = `http://localhost:8000/api/company/invoices?search=${search}`;
+    }
+
     try {
-        const response = await fetch('http://localhost:8000/api/company/invoices', {
+        const response = await fetch(url, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -114,8 +199,6 @@ const getInvoices = async () => {
     }
 };
 
-
-//http://localhost:8000/api/company/invoices/process/9
 
 const processInvoice = async (invoice) => {
     try {
@@ -164,6 +247,37 @@ const downloadCorrected = async (invoice) => {
 </script>
 
 <style scoped lang='scss'>
+
+    .form-group {
+        margin-top: 20px;
+        margin-bottom: 20px;
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            margin-bottom: 10px;
+
+            &:focus {
+                outline: none;
+            }
+        }
+
+        button {
+            background-color: #000000;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    }
 
     .container_header {
         display: flex;
@@ -269,6 +383,7 @@ const downloadCorrected = async (invoice) => {
     .download_button{
         background-color: #007bff;
         color: white;
+        width: 100%;
         padding: 10px 20px;
         border: none;
         border-radius: 5px;

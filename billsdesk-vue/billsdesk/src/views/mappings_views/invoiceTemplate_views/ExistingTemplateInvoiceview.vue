@@ -8,6 +8,12 @@
     <div class="loading_container"  v-else>
       <LoadingTemplate />
     </div>
+    <div v-if="templates <= 0 && !loading" class="container_not_found">
+      <img src="/not_found.webp" alt="not found">
+         <button class="button_back">
+            <router-link to="/mapping-settings/mapping">Create new template</router-link>
+        </button>
+    </div>
   </div>
 </template>
 
@@ -70,6 +76,30 @@ const handleTemplateSelection = (selectedTemplate) => {
 };
 </script>
 <style scoped lang="scss">
+
+    .container_not_found {
+        flex-direction: column;
+
+        .button_back{
+          margin-top: 20px;
+          background-color: #007bff;
+          color: white;
+          border: none;
+          border-radius: 5px;
+          cursor: pointer;
+
+          a {
+              color: white;
+              text-decoration: none;
+              width: 100%;
+              height: 100%;
+              padding: 10px 20px;
+              display: block;
+          }
+      }
+    }
+
+
     .container_templates {
         margin-top: 20px;
         display: flex;

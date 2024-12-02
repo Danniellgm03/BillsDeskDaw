@@ -79,6 +79,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/', [InvoiceController::class, 'index']);
         Route::post('/', [InvoiceController::class, 'create']);
         Route::get('{id}', [InvoiceController::class, 'show']);
+        Route::put('{id}', [InvoiceController::class, 'update']);
         Route::get('{id}/template', [InvoiceController::class, 'getTemplate']);
         Route::get('/template/{templateId}/correction-rules', [InvoiceController::class, 'getCorrectionRules']);
         Route::get('/process/{id}', [InvoiceController::class, 'processInvoice']);

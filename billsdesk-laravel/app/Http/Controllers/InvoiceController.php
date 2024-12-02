@@ -14,10 +14,21 @@ use App\Exports\CorrectedInvoicesExport;
 
 class InvoiceController extends Controller
 {
-    public function index()
+
+    public function index(Request $request)
     {
-        $invoices = Invoice::where('company_id', auth()->user()->company_id)->get();
-        return response()->json($invoices);
+        $invoices = Invoice::where('company_id', auth()->user()->company_id);
+
+        if ($request->has('search')) {
+            $search = $request->input('search');
+            $invoices->where(function ($query) use ($search) {
+                $query->where('id', 'like', "$search")
+                    ->orWhere('name_invoice', 'like', "%$search%")
+                    ->orWhere('status', 'like', "%$search%");
+            });
+        }
+
+        return response()->json($invoices->get());
     }
 
     public function show($id)
@@ -35,6 +46,7 @@ class InvoiceController extends Controller
         $validator = Validator::make($request->all(), [
             'file_id' => 'required|exists:files,id',
             'template_id' => 'required|string',
+            'name_invoice' => 'string|optional',
         ]);
 
         if ($validator->fails()) {
@@ -46,6 +58,7 @@ class InvoiceController extends Controller
             'user_id' => auth()->id(),
             'file_id' => $request->input('file_id'),
             'status' => 'pending',
+            'name_invoice' => $request->input('name_invoice', 'Invoice'),
             'template_id' => $request->input('template_id'),
         ]);
 
@@ -158,4 +171,26 @@ class InvoiceController extends Controller
         // Generar el Excel corregido con fórmulas dinámicas
         return Excel::download(new CorrectedInvoicesExport($processedData, $aggregations), 'facturas_corregidas.xlsx');
     }
+
+    public function update(Request $request, $id)
+    {
+        $invoice = Invoice::where('id', $id)
+            ->where('company_id', auth()->user()->company_id)
+            ->firstOrFail();
+
+        $validator = Validator::make($request->all(), [
+            'name_invoice' => 'string',
+            'status' => 'in:pending,corrected,rejected',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 400);
+        }
+
+        $invoice->update($request->all());
+
+        return response()->json(['message' => 'Factura actualizada', 'invoice' => $invoice]);
+    }
+
+
 }

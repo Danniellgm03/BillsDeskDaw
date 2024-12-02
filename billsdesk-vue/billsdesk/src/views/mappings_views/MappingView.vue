@@ -31,6 +31,7 @@
 
 <script setup>
 import { useMappingColumnsStore } from '@/stores/mappingColumnsStore';
+import { useSelectedFileStore } from '@/stores/selectedFileStore';
 import { computed, ref, onBeforeMount } from 'vue';
 import Cookies from 'js-cookie';
 import InputText from 'primevue/inputtext';
@@ -38,6 +39,9 @@ import LoadingTemplate from '@/components/LoadingTemplate.vue';
 
 const mappingColumnsStore = useMappingColumnsStore();
 const columnsToMap = computed(() => mappingColumnsStore.columns); // Obtener las columnas del store
+
+const selectedFileStore = useSelectedFileStore();
+const selectedFile = computed(() => selectedFileStore.selectedFile);
 
 const headersFile = ref([]);
 const loading = ref(false);
@@ -55,8 +59,9 @@ onBeforeMount(async () => {
 
 // Obtener las cabeceras del archivo
 const getFileHeaders = async () => {
+  let id = selectedFile.value.id;
   try {
-    const response = await fetch(`http://localhost:8000/api/files/2/getHeaders`, {
+    const response = await fetch(`http://localhost:8000/api/files/${id}/getHeaders`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

@@ -9,10 +9,7 @@
         <p class="invoice_status">{{ invoice.status }}</p>
         <div class="divider"></div>
         <div class="footer_container">
-            <strong>Total Amount</strong>
-            <p>{{ invoice.total_amount || 'Not Corrected' }}</p>
-            <strong>Saved Amount</strong>
-            <p>{{ invoice.saved_amount || 'Not Corrected' }}</p>
+            <strong>{{ invoice.name_invoice  }}</strong>
         </div>
     </div>
 </template>

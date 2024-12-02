@@ -107,159 +107,165 @@
 
   </div>
 </template>
-
 <script setup>
-    import { ref, computed, onMounted, onBeforeMount } from 'vue';
-    import { useInvoiceTemplateStore } from '@/stores/invoiceTemplaceStore';
-    import { useSelectedFileStore } from '@/stores/selectedFileStore';
-    import Cookies from 'js-cookie';
-    import InputText from 'primevue/inputtext';
-    import { useRouter } from 'vue-router';
-    import LoadingTemplate from '@/components/LoadingTemplate.vue';
-    import { useNotificationService } from '@/utils/notificationService';
+import { ref, computed, onMounted, onBeforeMount } from 'vue';
+import { useInvoiceTemplateStore } from '@/stores/invoiceTemplaceStore';
+import { useSelectedFileStore } from '@/stores/selectedFileStore';
+import Cookies from 'js-cookie';
+import InputText from 'primevue/inputtext';
+import { useRouter } from 'vue-router';
+import LoadingTemplate from '@/components/LoadingTemplate.vue';
+import { useNotificationService } from '@/utils/notificationService';
 
-    const { notify } = useNotificationService();
+const { notify } = useNotificationService();
 
-    const router = useRouter();
+const router = useRouter();
 
-    const loading = ref(false);
+const loading = ref(false);
 
-    const invoiceTemplateStore = useInvoiceTemplateStore();
-    const invoiceTemplate = computed(() => invoiceTemplateStore.template);
+const invoiceTemplateStore = useInvoiceTemplateStore();
+const invoiceTemplate = computed(() => invoiceTemplateStore.template);
 
-    const selectedFileStore = useSelectedFileStore();
-    const selectedFile = computed(() => selectedFileStore.selectedFile);
+const selectedFileStore = useSelectedFileStore();
+const selectedFile = computed(() => selectedFileStore.selectedFile);
 
-    const correctionRules = ref([]); // Aquí se guardan las reglas cargadas
-    const ruleData = ref({
-        rule_name: '',
-        conditions: [],
-        corrections: [],
+const correctionRules = ref([]); // Aquí se guardan las reglas cargadas
+const ruleData = ref({
+  rule_name: '',
+  conditions: [], // Solo una condición
+  corrections: [], // Solo una corrección
+  template_id: invoiceTemplate.value.template_id,
+  company_id: 1,
+});
+
+onBeforeMount(async () => {
+  const data = await fetchCorrectionRules();
+  correctionRules.value = data.correction_rules;
+});
+
+// Cargar las Correction Rules desde el endpoint
+const fetchCorrectionRules = async () => {
+  try {
+    loading.value = true;
+    const response = await fetch(`http://localhost:8000/api/company/invoices/template/${invoiceTemplate.value.template_id}/correction-rules`, {
+      headers: { Authorization: `Bearer ${Cookies.get('authToken')}` },
+    });
+    const data = await response.json();
+    loading.value = false;
+    return data;
+  } catch (error) {
+    console.error('Error fetching correction rules:', error);
+    return [];
+  }
+};
+
+// Métodos para manejar el formulario
+const addCondition = () => {
+  if (ruleData.value.conditions.length === 0) {
+    ruleData.value.conditions.push({ field: '', operator: '', value: '' });
+  }
+};
+const removeCondition = () => {
+  ruleData.value.conditions = [];
+};
+
+const addCorrection = () => {
+  if (ruleData.value.corrections.length === 0) {
+    ruleData.value.corrections.push({ field: '', new_column: '', action: '', value: [] });
+  }
+};
+const removeCorrection = () => {
+  ruleData.value.corrections = [];
+};
+
+const addCorrectionValue = (correction) => correction.value.push({ min: '', max: '', step: '', value: '' });
+const removeCorrectionValue = (correction, idx) => correction.value.splice(idx, 1);
+
+const saveCorrectionRule = async () => {
+  try {
+    loading.value = true;
+    const response = await fetch(`http://localhost:8000/api/company/correction-rules`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${Cookies.get('authToken')}`,
+      },
+      body: JSON.stringify(ruleData.value),
+    });
+    const data = await response.json();
+
+    ruleData.value = {
+      rule_name: '',
+      conditions: [],
+      corrections: [],
+      template_id: invoiceTemplate.value.template_id,
+      company_id: 1,
+    };
+
+    // Actualizar las reglas de corrección
+    let corrections = await fetchCorrectionRules();
+    correctionRules.value = corrections.correction_rules;
+
+    notify({
+      severity: 'success',
+      summary: 'Success',
+      detail: 'Correction rule saved successfully',
+    });
+
+    loading.value = false;
+  } catch (error) {
+    console.error('Error saving correction rule:', error);
+    notify({
+      severity: 'error',
+      summary: 'Error',
+      detail: 'Error saving correction rule',
+    });
+  }
+};
+
+// Cargar las reglas de corrección al montar el componente
+onMounted(() => {
+  if (invoiceTemplate.value) {
+    fetchCorrectionRules();
+  }
+});
+
+const fetchSaveInvoice = async () => {
+  try {
+    loading.value = true;
+    const response = await fetch(`http://localhost:8000/api/company/invoices`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${Cookies.get('authToken')}`,
+      },
+      body: JSON.stringify({
         template_id: invoiceTemplate.value.template_id,
-        company_id: 1,
+        file_id: selectedFile.value.id,
+      }),
+    });
+    const data = await response.json();
+
+    loading.value = false;
+
+    notify({
+      severity: 'success',
+      summary: 'Success',
+      detail: 'Invoice saved successfully',
     });
 
-
-
-    onBeforeMount( async () => {
-        const data = await fetchCorrectionRules();
-        correctionRules.value = data.correction_rules;
-    })
-
-
-    // Cargar las Correction Rules desde el endpoint
-    const fetchCorrectionRules = async () => {
-        try {
-            loading.value = true;
-            const response = await fetch(`http://localhost:8000/api/company/invoices/template/${invoiceTemplate.value.template_id}/correction-rules`,{
-                headers: { Authorization: `Bearer ${Cookies.get('authToken')}` },
-            }
-            );
-            const data = await response.json();
-            loading.value = false;
-            return data
-        } catch (error) {
-            console.error('Error fetching correction rules:', error);
-            return [];
-        }
-    };
-
-    // Métodos para manejar el formulario
-    const addCondition = () => ruleData.value.conditions.push({ field: '', operator: '', value: '' });
-    const removeCondition = (index) => ruleData.value.conditions.splice(index, 1);
-
-    const addCorrection = () => ruleData.value.corrections.push({ field: '', new_column: '', action: '', value: [] });
-    const removeCorrection = (index) => ruleData.value.corrections.splice(index, 1);
-
-    const addCorrectionValue = (correction) => correction.value.push({ min: '', max: '', step: '', value: '' });
-    const removeCorrectionValue = (correction, idx) => correction.value.splice(idx, 1);
-
-    const saveCorrectionRule = async () => {
-        try {
-            loading.value = true;
-            const response = await fetch(`http://localhost:8000/api/company/correction-rules`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${Cookies.get('authToken')}`,
-                },
-                body: JSON.stringify(ruleData.value),
-            });
-            const data = await response.json();
-
-            ruleData.value = {
-                rule_name: '',
-                conditions: [],
-                corrections: [],
-                template_id: invoiceTemplate.value.template_id,
-                company_id: 1,
-            };
-
-            // Actualizar las reglas de corrección
-            let corrections = await fetchCorrectionRules();
-            correctionRules.value = corrections.correction_rules;
-
-            notify({
-                severity: 'success',
-                summary: 'Success',
-                detail: 'Correction rule saved successfully',
-            });
-
-            loading.value = false;
-        } catch (error) {
-            console.error('Error saving correction rule:', error);
-            notify({
-                severity: 'error',
-                summary: 'Error',
-                detail: 'Error saving correction rule',
-            });
-            
-        }
-    };
-
-    // Cargar las reglas de corrección al montar el componente
-    onMounted(() => {
-        if (invoiceTemplate.value) {
-            fetchCorrectionRules();
-        }
+    router.push('/corrector');
+  } catch (error) {
+    console.error('Error saving invoice:', error);
+    notify({
+      severity: 'error',
+      summary: 'Error',
+      detail: 'Error saving invoice',
     });
-
-    const fetchSaveInvoice = async () => {
-        try {
-            loading.value = true;
-            const response = await fetch(`http://localhost:8000/api/company/invoices`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${Cookies.get('authToken')}`,
-                },
-                body: JSON.stringify({
-                    template_id: invoiceTemplate.value.template_id,
-                    file_id: selectedFile.value.id,
-                }),
-            });
-            const data = await response.json();
-
-            loading.value = false;
-
-            notify({
-                severity: 'success',
-                summary: 'Success',
-                detail: 'Invoice saved successfully',
-            });
-
-            router.push('/corrector');
-
-        } catch (error) {
-            console.error('Error saving invoice:', error);
-            notify({
-                severity: 'error',
-                summary: 'Error',
-                detail: 'Error saving invoice',
-            });
-        }
-    }
+  }
+};
 </script>
+
 
 <style scoped lang="scss">
     form {
