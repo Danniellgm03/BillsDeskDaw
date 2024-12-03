@@ -14,7 +14,7 @@ class FileController extends Controller
 
     public function index(Request $request)
     {
-        $perPage = $request->input('per_page', 15);
+        $perPage = $request->input('per_page', 5);
         $search = $request->input('search', ''); // Parámetro de búsqueda
         $isFav = $request->input('is_fav'); // Parámetro para filtrar por 'is_fav'
         $limit = $request->input('limit', 5); // Limite de resultados (si no se pasa, no se aplica)

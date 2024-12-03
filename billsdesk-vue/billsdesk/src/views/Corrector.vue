@@ -28,8 +28,15 @@
             <div v-if="invoices.length <= 0 && !invoices_loading" class="container_not_found">
                <img src="/not_found.webp" alt="not found">
             </div>
-        </section>
 
+            <div class="pagination" :class="{
+                'd-none': invoices.length <= 0 || invoices_loading
+            }">
+                <Paginator v-model:page="pagination.page" :totalRecords="pagination.total" :rows="pagination.limit"
+                    :rowsPerPageOptions="[5, 10, 20]" @page="pageChange" />
+            </div>
+
+        </section>
 
         <Drawer v-model:visible="isDrawerOpen" style="width: 50% !important;"  position="right" class="p-drawer_styled" :visible="isDrawerOpen" :modal="true" :showHeader="false" :baseZIndex="10000" @onHide="isDrawerOpen = false">
              <template #header>
@@ -53,6 +60,11 @@
                     <p v-if="dateWarning" style="color: red; font-weight: bold;margin-top: 10px;">
                         <strong>The payment date has already passed!</strong>
                     </p>
+                    <br>
+                    <br>
+                    <label for="contact_id"><strong>Contact:</strong></label>
+                    <Select name="contact_id" id="contact_id" v-model="invoiceSelected.contact_id" :options="contacts"
+                    optionLabel="name" optionValue="id" placeholder="Select Contact"/>
                     <br>
                     <button class="save_name" @click="updateInvoice" style="margin-top: 10px;">
                         Update
@@ -83,6 +95,15 @@ import InputText from 'primevue/inputtext';
 import { useNotificationService } from '@/utils/notificationService';
 import Select from 'primevue/select';
 import DatePicker from 'primevue/datepicker';
+import Paginator from 'primevue/paginator';
+
+
+const pagination = ref({
+    page: 1,
+    limit: 5,
+    total: 0,
+    search: ''
+});
 
 
 const { notify } = useNotificationService();
@@ -104,6 +125,7 @@ const isDrawerOpen = ref(false);
 const drawerContentLoading = ref(true);
 const drawerContentInvoice = ref({});
 const invoiceSelected = ref({});
+const contacts = ref([]);
 
 const layout = ref('grid_extend'); 
 
@@ -136,9 +158,29 @@ const correctInvoice = async (invoice) => {
     drawerContentLoading.value = true;
     const processedInvoice = await processInvoice(invoice);
     drawerContentInvoice.value = processedInvoice.data;    
+
     invoiceSelected.value = invoice;
+    contacts.value = await getAllContacts();
 
     drawerContentLoading.value = false;
+};
+
+const getAllContacts = async () => {
+    try {
+        const response = await fetch('http://localhost:8000/api/company/contacts', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Authorization': Cookies.get('authToken') ?? ''
+            }
+        });
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.log(error);
+    }
 };
 
 onBeforeMount(async () => {
@@ -149,7 +191,11 @@ onBeforeMount(async () => {
 
 const searchFile = async () => {
     invoices_loading.value = true;
-    const data = await getInvoices(search_input.value);
+    const data = await getInvoices(
+        pagination.value.page,
+        pagination.value.limit,
+        search_input.value
+    );
     invoices.value = data;
     invoices_loading.value = false;
 };
@@ -166,7 +212,8 @@ const updateInvoice = async () => {
             body: JSON.stringify({
                 name_invoice: invoiceSelected.value.name_invoice,
                 status: invoiceSelected.value.status,
-                date_to_pay: invoiceSelected.value.date_to_pay
+                date_to_pay: invoiceSelected.value.date_to_pay,
+                contact_id: invoiceSelected.value.contact_id
             })
         });
 
@@ -198,13 +245,18 @@ const updateInvoice = async () => {
 };
 
 const getInvoices = async (
-    search
+    page = 1,
+    limit = 5,
+    search = '',
 ) => {
 
     let url = 'http://localhost:8000/api/company/invoices';
 
+
+    url = `${url}?page=${page}&per_page=${limit}`;
+
     if (search) {
-        url = `http://localhost:8000/api/company/invoices?search=${search}`;
+        url = `${url}&search=${search}`;
     }
 
     try {
@@ -218,10 +270,27 @@ const getInvoices = async (
         });
 
         const data = await response.json();
-        return data;
+
+        let data_json = data.data;
+
+        pagination.value = {
+            total: data_json.total,
+            page: data_json.current_page,
+            limit: data_json.per_page,
+            search: search_input.value
+        };
+
+        return data_json.data;
     } catch (error) {
         console.log(error);
     }
+};
+
+const pageChange = async (event) => {
+    invoices_loading.value = true;
+    const data = await getInvoices(event.page + 1, event.rows, search_input.value);
+    invoices.value = data;
+    invoices_loading.value = false;
 };
 
 
@@ -420,6 +489,16 @@ const downloadCorrected = async (invoice) => {
 
         i{
             margin-right: 5px;
+        }
+    }
+
+    .pagination {
+        margin-top: 20px;
+        display: flex;
+        justify-content: center;
+
+        &.d-none {
+            display: none;
         }
     }
 

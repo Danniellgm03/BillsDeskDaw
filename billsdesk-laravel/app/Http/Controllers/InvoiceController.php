@@ -17,18 +17,20 @@ class InvoiceController extends Controller
 
     public function index(Request $request)
     {
-        $invoices = Invoice::where('company_id', auth()->user()->company_id);
+        $perPage = $request->input('per_page', 5);
+        $search = $request->input('search', ''); // Parámetro de búsqueda
 
-        if ($request->has('search')) {
-            $search = $request->input('search');
-            $invoices->where(function ($query) use ($search) {
-                $query->where('id', 'like', "$search")
-                    ->orWhere('name_invoice', 'like', "%$search%")
-                    ->orWhere('status', 'like', "%$search%");
-            });
-        }
+        $invoices = Invoice::where('company_id', auth()->user()->company_id)
+            ->where(function ($query) use ($search) {
+                if ($search) {
+                    $query->where('name_invoice', 'like', "%$search%")
+                        ->orWhere('status', 'like', "%$search%");
+                }
+            })->paginate($perPage);
 
-        return response()->json($invoices->get());
+        return response()->json([
+            'data' => $invoices,
+        ]);
     }
 
     public function show($id)
@@ -46,7 +48,7 @@ class InvoiceController extends Controller
         $validator = Validator::make($request->all(), [
             'file_id' => 'required|exists:files,id',
             'template_id' => 'required|string',
-            'name_invoice' => 'string|optional',
+            'name_invoice' => 'string|nullable',
         ]);
 
         if ($validator->fails()) {

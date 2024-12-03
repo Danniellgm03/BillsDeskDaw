@@ -42,6 +42,13 @@
             <div v-if="files.length <= 0 && !files_loading" class="container_not_found">
                 <img src="/not_found.webp" alt="not found">
             </div>
+
+            <div class="pagination" :class="{
+                'd-none': files.length <= 0 || files_loading
+            }">
+                <Paginator v-model:page="pagination.page" :totalRecords="pagination.total" :rows="pagination.limit"
+                    :rowsPerPageOptions="[5, 10, 20]" @page="pageChange" />
+            </div>
         </section>
 
         <Drawer v-model:visible="isDrawerOpen" position="right" class="p-drawer_styled">
@@ -158,6 +165,7 @@ import Button from 'primevue/button';
 import LoadingTemplate from '@/components/LoadingTemplate.vue';
 import Dialog from 'primevue/dialog';
 import Textarea from 'primevue/textarea';
+import Paginator from 'primevue/paginator';
 
 
 const filterFavorites = ref(false);
@@ -180,6 +188,19 @@ onBeforeMount(async () => {
     files.value = await fetchFiles();
 });
 
+const pagination = ref({
+    page: 1,
+    last_page: 5,
+    limit: 5,
+    total: 0,
+    search: '',
+    is_fav: null,
+});
+
+
+const pageChange = async (event) => {
+    files.value = await fetchFiles(event.page + 1, event.rows, pagination.value.search, pagination.value.is_fav);
+};
 
 const handleEditDescription = async (file) => {
     try {
@@ -293,11 +314,13 @@ const fetchFiles = async (
     search = '',
     is_fav = null
 ) => {
+
+
     files_loading.value = true;
     try{
 
 
-        let url = `http://localhost:8000/api/files?page=${page}&limit=${limit}`;
+        let url = `http://localhost:8000/api/files?page=${page}&per_page=${limit}`;
 
         if (search) {
             url += `&search=${search}`;
@@ -320,6 +343,16 @@ const fetchFiles = async (
             throw new Error(data.message || 'Failed to fetch files');
         }
         files_loading.value = false;
+
+        pagination.value = {
+            page: data.data.current_page,
+            last_page: data.data.last_page,
+            limit: data.data.per_page,
+            total: data.data.total,
+            search: search,
+            is_fav: is_fav,
+        };
+        
         return data.data.data;
     } catch (error) {
         console.log(error);
@@ -655,6 +688,16 @@ const changeLayout = () => {
         margin-top: 20px;
     }
 
+
+    .pagination{
+        margin-top: 20px;
+        display: flex;
+        justify-content: center;
+
+        &.d-none{
+            display: none;
+        }
+    }
 
 
 </style>
