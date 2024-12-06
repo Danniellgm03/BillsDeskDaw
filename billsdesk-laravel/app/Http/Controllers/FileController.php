@@ -105,7 +105,8 @@ class FileController extends Controller
     {
 
         $validator = Validator::make($request->all(), [
-            'file' => 'required|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,txt,rtf,html,htm,xml,csv,zip,rar|max:2048',
+            'file' => 'required|file|mimes:csv|max:2048',
+            // 'file' => 'required|file|mimes:xls,xlsx,csv|max:2048',
             'file_type' => 'required|in:invoice,other',
             'file_description' => 'nullable|string',
         ]);

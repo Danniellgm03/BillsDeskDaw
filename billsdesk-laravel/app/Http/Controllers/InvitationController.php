@@ -39,6 +39,10 @@ class InvitationController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
+        if(Invitation::where('email', $request->email)->exists()) {
+            return response()->json(['error' => 'Invitation already sent to this email'], 422);
+        }
+
         $invitation = Invitation::create([
             'email' => $request->email,
             'role_id' => $request->role_id,
