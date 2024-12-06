@@ -45,10 +45,32 @@
           <div v-for="(rule, index) in templateData.validation_rules" :key="index">
             <div>
               <InputText type="text" v-model="rule.field" placeholder="Field" />
-              <InputText type="text" v-model="rule.operator" placeholder="Operator" />
+              <Select v-model="rule.operator" :options="opertators" optionLabel="label" optionValue="value" placeholder="Select an operator" style="
+              width: 100%;
+              margin: 5px;
+              padding: 5px;
+              " />
               <InputText type="text" v-model="rule.value" placeholder="Value" />
-              <InputText type="text" v-model="rule.highlight" placeholder="Highlight (Optional)" />
-              <InputText type="text" v-model="rule.row_highlight" placeholder="Row Highlight (Optional)" />
+              <div class="color_picker" :style="{
+                borderColor: '#'+rule.highlight || '#000',
+              }">
+                <label for="">Row Highlight</label>
+                <ColorPicker v-model="rule.highlight" placeholder="Highlight (Optional)" />
+                <!-- remove color -->
+                 <a @click="rule.highlight = ''" class="remove_color">
+                  <i class="pi pi-times"></i>
+                 </a>
+              </div>
+              <div class="color_picker" :style="{
+                borderColor: '#'+rule.row_highlight || '#000',
+              }">
+                <label for="">Row Highlight</label>
+                <ColorPicker v-model="rule.row_highlight" placeholder="Row Highlight (Optional)" />
+                <!-- remove color -->
+                 <a @click="rule.row_highlight = ''" class="remove_color">
+                  <i class="pi pi-times"></i>
+                 </a>
+              </div>
               <button type="button" @click="removeValidationRule(index)" class="buttonremove">Remove Rule</button>
             </div>
             <!-- Conditions -->
@@ -56,10 +78,33 @@
               <label>Conditions</label>
               <div v-for="(condition, idx) in rule.conditions" :key="idx" class="condition_inputs">
                 <InputText type="text" v-model="condition.field" placeholder="Condition Field" />
-                <InputText type="text" v-model="condition.operator" placeholder="Condition Operator" />
+                <Select v-model="condition.operator" :options="opertators" optionLabel="label" optionValue="value" placeholder="Select an operator" style="
+                width: 100%;
+                margin: 5px;
+                padding: 5px;
+                " />
                 <InputText type="text" v-model="condition.value" placeholder="Condition Value" />
-                <InputText type="text" v-model="condition.highlight" placeholder="Highlight" />
-                <InputText type="text" v-model="condition.row_highlight" placeholder="Row Highlight (Optional)" class="optional" />
+                <div class="color_picker" :style="{
+                  borderColor: '#'+condition.highlight || '#000',
+                }">
+                  <label for="">Celd Highlight Color </label>
+                  <ColorPicker v-model="condition.highlight" placeholder="Highlight Color" />
+                  <!-- remove color -->
+                  <a @click="condition.highlight = ''" class="remove_color">
+                    <i class="pi pi-times"></i>
+                  </a>
+                </div>
+                
+                <div class="color_picker" :style="{
+                  borderColor: '#'+condition.row_highlight || '#000',
+                }">
+                  <label for="">Row Highlight Color </label>
+                  <ColorPicker v-model="condition.row_highlight" placeholder="Row Highlight Color" />
+                  <!-- remove color -->
+                  <a @click="condition.row_highlight = ''" class="remove_color">
+                    <i class="pi pi-times"></i>
+                  </a>
+                </div>
                 <button type="button" @click="removeCondition(rule, idx)" class="buttonremove">Remove Condition</button>
               </div>
               <button type="button" @click="addCondition(rule)" class="button_add condition">Add Condition</button>
@@ -72,6 +117,32 @@
         </div>
       </div>
 
+
+      <!-- duplicate field into validation rules -->
+      <div class="form-group duplicated_fields">
+        <label>Duplicated</label>
+        <div v-if="!loading">
+          <div v-for="(duplicate, index) in duplicated_fields" :key="index" class="duplicated_field">
+            <InputText type="text" v-model="duplicate.duplicate_field" placeholder="Duplicate Field" />
+            <div class="color_picker" :style="{
+              borderColor: '#'+duplicate.row_highlight || '#000',
+            }">
+              <label for="">Row Highlight</label>
+              <ColorPicker v-model="duplicate.row_highlight" placeholder="Row Highlight (Optional)" />
+              <!-- remove color -->
+              <a @click="duplicate.row_highlight = ''" class="remove_color">
+                <i class="pi pi-times"></i>
+              </a>
+            </div>
+            <button type="button" @click="removeDuplicatedField(index)" class="buttonremove">Remove Duplicated Field</button>
+          </div>
+          <button type="button" @click="addDuplicatedField" class="button_add">Add Duplicated Field</button>
+
+        </div>
+        <div class="loading_container" v-else>
+          <LoadingTemplate />
+        </div>
+      </div>
 
 
       <!-- Aggregations -->
@@ -105,9 +176,21 @@ import InputText from 'primevue/inputtext';
 import Skeleton from 'primevue/skeleton';
 import LoadingTemplate from '@/components/LoadingTemplate.vue';
 import { useNotificationService } from '@/utils/notificationService';
+import Select from 'primevue/select';
+import ColorPicker from 'primevue/colorpicker';
+
 
 const { notify } = useNotificationService();
 
+
+const opertators = [
+  { label: 'Equal', value: '==' },
+  { label: 'Not Equal', value: '!=' },
+  { label: 'Greater Than', value: '>' },
+  { label: 'Less Than', value: '<' },
+  { label: 'Greater Than or Equal', value: '>=' },
+  { label: 'Less Than or Equal', value: '<=' }
+]
 
 const loading = ref(false);
 
@@ -152,7 +235,17 @@ const fetchTemplateData = async () => {
 
 onMounted(async () => {
     const data = await fetchTemplateData();
+
+    console.log(data.validation_rules)
+    const duplicated = data.validation_rules.filter(rule => rule.duplicate_field);
+    console.log(duplicated);
+    duplicated_fields.value = duplicated;
+
+    //exclude duplicated fields from validation rules
+    data.validation_rules = data.validation_rules.filter(rule => !rule.duplicate_field);
+
     templateData.value = data;
+
 });
 
 // Add Formula
@@ -178,6 +271,22 @@ const addValidationRule = () => {
     row_highlight: '',
     conditions: [] // Asegúrate de inicializar esto como un arreglo vacío
   });
+};
+
+const duplicated_fields = ref([]);
+
+// Add Duplicated Field
+const addDuplicatedField = () => {
+  duplicated_fields.value.push({
+    duplicate_field: '',
+    row_highlight: ''
+  });
+};
+
+
+// Remove Duplicated Field
+const removeDuplicatedField = (index) => {
+  duplicated_fields.value.splice(index, 1);
 };
 
 // Remove Validation Rule
@@ -263,6 +372,14 @@ const saveTemplate = async () => {
       validation_rules: cleanValidationRules(templateData.value.validation_rules),
       aggregations: processAggregations(templateData.value.aggregations),
     };
+
+    processedTemplateData.validation_rules = [
+      ...processedTemplateData.validation_rules,
+      ...duplicated_fields.value.map(duplicate => ({
+        duplicate_field: duplicate.duplicate_field,
+        row_highlight: duplicate.row_highlight
+      }))
+    ]
 
 
     const response = await fetch(`http://localhost:8000/api/company/invoice-templates/${route.params.id}`, {
@@ -453,6 +570,40 @@ const saveTemplate = async () => {
 
     &:hover {
       background-color: #ccc;
+    }
+  }
+
+  .color_picker{
+    display: flex;
+    border: 1px solid #d1d1d1;
+    width: fit-content;
+    align-items: center;
+    justify-content: space-between;
+    border-radius: 5px;
+    margin: 5px;
+    padding: 10px;
+    gap: 13px;
+  }
+
+  .remove_color{
+    cursor: pointer;
+  }
+
+  .duplicated_fields{
+
+
+    div.duplicated_field{
+      margin-top: 10px;
+      padding: 10px;
+      background-color: #f0f0f0;
+      border-radius: 5px;
+      input{
+        margin: 5px;
+        padding: 5px;
+        width: 40%;
+      }
+
+
     }
   }
 

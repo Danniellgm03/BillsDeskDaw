@@ -59,8 +59,14 @@ class CorrectedInvoicesExport implements FromArray, WithHeadings, WithStyles
                 // Si la fila tiene columnas no vacías, aplicar el color de fila a esas columnas
                 foreach ($nonEmptyColumns as $key => $value) {
                     $columnIndex = array_search($key, array_keys($row)) + 1; // Posición en la fila
+                    $row['row_highlight'] = str_replace('#', '', $row['row_highlight']);
                     $sheet->getStyleByColumnAndRow($columnIndex, $rowIndex)
-                        ->getFill()->setFillType('solid')->getStartColor()->setARGB($row['row_highlight']);
+                        ->applyFromArray([
+                            'fill' => [
+                                'fillType' => 'solid',
+                                'startColor' => ['rgb' => $row['row_highlight']]
+                            ]
+                        ]);
                 }
             }
 
@@ -69,8 +75,14 @@ class CorrectedInvoicesExport implements FromArray, WithHeadings, WithStyles
                 if (str_contains($key, '_highlight') && $value) {
                     $baseField = str_replace('_highlight', '', $key);
                     $columnIndex = array_search($baseField, array_keys($row)) + 1; // Posición en la fila
+                    $value = str_replace('#', '', $value);
                     $sheet->getStyleByColumnAndRow($columnIndex, $rowIndex)
-                        ->getFill()->setFillType('solid')->getStartColor()->setARGB($value);
+                        ->applyFromArray([
+                            'fill' => [
+                                'fillType' => 'solid',
+                                'startColor' => ['rgb' => $value]
+                            ]
+                        ]);
                 }
             }
         }
