@@ -1,5 +1,7 @@
 <template>
     <div>
+        <ErrorsComponent :errors="errors" v-if="errors != ''" />
+
         <!-- Name -->
         <SettingsLayout>
             <template #info>
@@ -134,7 +136,9 @@ import SettingsLayout from '@/layouts/SettingsLayout.vue';
 import InputText from 'primevue/inputtext';
 import Cookies from 'js-cookie';
 import Skeleton from 'primevue/skeleton';
+import ErrorsComponent from '../ErrorsComponent.vue';
 
+const errors = ref([]);
 
 // Variables reactivas
 const name = ref('');
@@ -218,6 +222,7 @@ const saveUser = async () => {
             console.log(data);
         } else {
             console.error(data);
+            errors.value = data.errors;
         }
 
     } catch (error) {

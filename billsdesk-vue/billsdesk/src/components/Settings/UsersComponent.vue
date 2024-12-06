@@ -128,7 +128,8 @@
 
 
          <Dialog v-model:visible="visible" modal header="Create User" :style="{ width: '25rem' }">
-            <form v-if="!loadingCreateFormUser">
+             <form v-if="!loadingCreateFormUser">
+                <ErrorsComponent :errors="errors" v-if="errors " />
                 <div class="field_form">
                     <label for="name">Name</label>
                     <InputText id="name" v-model="form.name" />
@@ -157,6 +158,7 @@
         </Dialog>
         <Dialog v-model:visible="visibleInvite" modal header="Invite User" :style="{ width: '25rem' }">
             <form v-if="!loadingInvitingForm">
+                <ErrorsComponent :errors="errors" v-if="errors " />
                 <div class="field_form">
                     <label for="email">Email</label>
                     <InputText id="email" v-model="form.email" />
@@ -188,13 +190,14 @@ import InputText from 'primevue/inputtext';
 import { hasPermission } from '@/utils/permissions'; // Importa la función
 import LoadingTemplate from '@/components/LoadingTemplate.vue';
 import Paginator from 'primevue/paginator';
+import ErrorsComponent from '../ErrorsComponent.vue';
 
 
 const canManageUsers = hasPermission(['manage_users']);
 const canManageRoles = hasPermission(['manage_roles']);
 const canInviteUsers = hasPermission(['manage_invitations']);
 
-
+const errors = ref(null);
 const authenticatedUser = ref(null);
 
 const visible = ref(false);
@@ -400,6 +403,29 @@ const createUser = async () => {
     if (!canManageUsers) return;
     try {
 
+        if(form.value.password !== form.value.password_confirm) {
+            errors.value = {
+                password: ['Passwords do not match']
+            }
+            return;
+        }
+
+        if (!form.value.role) {
+            errors.value = {
+                role: ['Role is required']
+            }
+            return;
+        }
+
+        if(!form.value.name || !form.value.email || !form.value.password) {
+            errors.value = {
+                name: (!form.value.name) ? ['Name is required'] : [],
+                email: (!form.value.email) ? ['Email is required'] : [],
+                password: (!form.value.password) ? ['Password is required'] : [],
+            }
+            return;
+        }
+
         loadingCreateFormUser.value = true;
         let body = {
             name: form.value.name,
@@ -424,8 +450,12 @@ const createUser = async () => {
             await getUsers();
             visible.value = false;
             loadingCreateFormUser.value = false;
+            errors.value = null;
+
         } else {
             console.error(data);
+            loadingCreateFormUser.value = false;
+            errors.value = data.errors;
         }
 
     } catch (error) {
@@ -498,6 +528,20 @@ const inviteUser = async () => {
     if (!canInviteUsers) return;
     try {
 
+        if (!form.value.role) {
+            errors.value = {
+                role: ['Role is required']
+            }
+            return;
+        }
+
+        if(!form.value.email) {
+            errors.value = {
+                email: ['Email is required']
+            }
+            return;
+        }
+
         loadingInvitingForm.value = true;
         let body = {
             email: form.value.email,
@@ -524,9 +568,16 @@ const inviteUser = async () => {
             loadingInvitingForm.value = false;
             await getUsers();
             await getUsersInvites();
+            errors.value = null;
             
         } else {
             console.error(data);
+            errors.value = {
+               errors : {
+                    error: data.error
+               }
+            };
+            loadingInvitingForm.value = false;
         }
 
 

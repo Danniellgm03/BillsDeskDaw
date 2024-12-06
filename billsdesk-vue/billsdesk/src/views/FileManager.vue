@@ -91,6 +91,7 @@
             <div v-if="!loadingFileUpload">
 
                 <div class="field">
+                    <ErrorsComponent :errors="file_form.errors" v-if="file_form.errors != null" />
                      <label><strong>File:</strong></label>
                     <FileUpload
                         name="file"
@@ -99,6 +100,7 @@
                         :maxFileSize="1000000"
                         @select="onFileSelect"
                         v-model="file_form.file"
+                        accept=".xlsx,.xls,.csv"
                     >
                         <template #header="{ chooseCallback, clearCallback }">
                             <Button 
@@ -174,7 +176,7 @@ import Textarea from 'primevue/textarea';
 import Paginator from 'primevue/paginator';
 import { useNotificationService } from '@/utils/notificationService';
 const { notify } = useNotificationService();
-
+import ErrorsComponent from '@/components/ErrorsComponent.vue';
 
 const filterFavorites = ref(false);
 const search_input = ref('');
@@ -192,6 +194,7 @@ const dowloadingFile = ref(false);
 const file_form = ref({
     file: null,
     description: '',
+    errors: null,
 });
 
 
@@ -335,6 +338,9 @@ const handleUploadFileServer = async () => {
         });
         const data = await response.json();
         if (!response.ok) {
+            file_form.value.errors = data.errors;
+            loadingFileUpload.value = false;
+
             throw new Error(data.message || 'Failed to upload file');
         }
         addingFile.value = false;

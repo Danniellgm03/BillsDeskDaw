@@ -17,6 +17,7 @@
                 <form @submit.prevent="createContact" class="form_contact" :class="{
                     'editLoading': editLoading
                 }">
+                    <ErrorsComponent :errors="errors" v-if="(Object.keys(errors)).length > 0" />
                     <div class="form-group">
                         <label for="name" class="form-label">Name</label>
                         <InputText type="text" class="form-control" id="name" v-model="contact.name"/>
@@ -60,6 +61,7 @@
             <form @submit.prevent="updateContact" class="form_contact" :class="{
                 'editLoading': editLoading
             }" >
+                <ErrorsComponent :errors="errorsEdit" v-if="(Object.keys(errorsEdit)).length > 0" />
                 <div class="form-group" >
                     <label for="name" class="form-label">Name</label>
                     <InputText type="text" class="form-control" id="name" v-model="contactSelected.name" :disabled="editLoading"/>
@@ -95,8 +97,11 @@ import Drawer from 'primevue/drawer';
 import LoadingTemplate from '@/components/LoadingTemplate.vue';
 import { useNotificationService } from '@/utils/notificationService';
 const { notify } = useNotificationService();
+import ErrorsComponent from '../ErrorsComponent.vue';
 
 
+const errors = ref({});
+const errorsEdit = ref({});
 const isDrawerOpen = ref(false);
 
 const loading = ref(false);
@@ -117,7 +122,9 @@ const contacts = ref([])
 
 const editContact = (contact) => {
     isDrawerOpen.value = true;
-    contactSelected.value = contact;
+    contactSelected.value = {
+        ...contact
+    };
 }
 
 
@@ -127,6 +134,16 @@ onBeforeMount(async () => {
 
 const updateContact = async () => {
     try {
+
+        if ( contactSelected.value.email === '' || contactSelected.value.phone === '' || contactSelected.value.address === '') {
+            notify({
+                severity: 'error',
+                summary: 'Error',
+                detail: 'All fields are required',
+            });
+            return;
+        }
+
         editLoading.value = true;
         const response = await fetch(`http://localhost:8000/api/company/contacts/${contactSelected.value.id}`, {
             method: 'PUT',
@@ -139,6 +156,13 @@ const updateContact = async () => {
         });
 
         const data = await response.json();
+
+        if (response.status === 422) {
+            errorsEdit.value = data.errors;
+            editLoading.value = false;
+            return;
+        }
+
         contacts.value = await fetchAllContacts();
         isDrawerOpen.value = false;
         editLoading.value = false;
@@ -147,6 +171,7 @@ const updateContact = async () => {
             summary: 'Success',
             detail: 'Contact updated successfully',
         });
+        errorsEdit.value = {};
         return data;
     } catch (error) {
         console.log(error)
@@ -180,6 +205,16 @@ const fetchAllContacts = async () => {
 
 const createContact = async () =>{
     try {
+
+        if (contact.value.name === '' || contact.value.email === '' || contact.value.phone === '' || contact.value.address === '') {
+            notify({
+                severity: 'error',
+                summary: 'Error',
+                detail: 'All fields are required',
+            });
+            return;
+        }
+
         editLoading.value = true;
         const response = await fetch('http://localhost:8000/api/company/contacts', {
             method: 'POST',
@@ -192,6 +227,14 @@ const createContact = async () =>{
         });
 
         const data = await response.json();
+
+
+        if (response.status === 422) {
+            errors.value = data.errors;
+            editLoading.value = false;
+            return;
+        }
+
         editLoading.value = false;
         contacts.value = await fetchAllContacts();
         notify({
@@ -205,6 +248,7 @@ const createContact = async () =>{
             phone: '',
             address: ''
         }
+        errors.value = {};
         return data;
     } catch (error) {
         console.log(error)
