@@ -33,7 +33,9 @@ class DatabaseSeeder extends Seeder
 
         $userRole = Role::create([
             'name' => 'user',
-            'permissions' => ['edit_invoices', 'view_invoices'],
+            'permissions' => [
+                'manage_users', 'manage_files'
+            ],
         ]);
 
         User::create([

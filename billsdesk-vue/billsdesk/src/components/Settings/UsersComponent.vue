@@ -10,8 +10,8 @@
                     accounts organized.
                 </p>
                 <div class="actions_users">
-                    <button class="action_button" @click="visible = true">Create</button>
-                    <button class="action_button invite" @click="inviteUserForm()">Invite</button>
+                    <button v-if="canManageUsers" class="action_button" @click="visible = true">Create</button>
+                    <button v-if="canInviteUsers" class="action_button invite" @click="inviteUserForm()">Invite</button>
                 </div>
             </template>
             <template #main>
@@ -56,6 +56,7 @@
                                         placeholder="Selecciona un rol"
                                         @change="updateRole(user)"
                                         :disabled="user.id === authenticatedUser.id"
+                                        v-if="canManageRoles"
                                     />                           
                                     <span class="pi pi-trash" @click="deleteUser(user)" v-if="user.id !== authenticatedUser.id"></span>
                                 </div>
@@ -65,7 +66,7 @@
             </template>
         </SettingsLayout>
         <div class="divider"></div>
-        <SettingsLayout>
+        <SettingsLayout v-if="canInviteUsers">
             <template #info>
                 <h4>Pending Invites</h4>
                 <p>
@@ -74,7 +75,7 @@
                     cancel pending requests, or send reminders as needed. This feature helps you keep track of invite status and ensures a smooth onboarding process for new users.
                 </p>
             </template>
-            <template #main>
+            <template #main v-if="canManageUsers">
                 <div class="users_table" v-if="loadingInvites || usersInvites.length > 0">
 
                     <template v-if="loadingInvites">
@@ -171,6 +172,12 @@ import Cookies from 'js-cookie';
 import Skeleton from 'primevue/skeleton';
 import Dialog from 'primevue/dialog';
 import InputText from 'primevue/inputtext';
+import { hasPermission } from '@/utils/permissions'; // Importa la función
+
+const canManageUsers = hasPermission(['manage_users']);
+const canManageRoles = hasPermission(['manage_roles']);
+const canInviteUsers = hasPermission(['manage_invitations']);
+
 
 const authenticatedUser = ref(null);
 
@@ -197,6 +204,7 @@ const getAuthenticatedUser = () => {
 }
 
 const getUsers = async () => {
+    if (!canManageUsers) return;
     loading.value = true;
     try {
         const response = await fetch('http://localhost:8000/api/company/users', {
@@ -230,6 +238,7 @@ onBeforeMount(() => {
 
 
 const resendInvite = async (user) => {
+    if (!canInviteUsers) return;
     loadingInvites.value = true;
     try {
         const response = await fetch(`http://localhost:8000/api/company/invitations/resend`, {
@@ -256,6 +265,7 @@ const resendInvite = async (user) => {
 }
 
 const cancelInvite = async (user) => {
+    if (!canInviteUsers) return;
     loadingInvites.value = true;
     try {
         const response = await fetch(`http://localhost:8000/api/company/invitations/cancel`, {
@@ -282,6 +292,7 @@ const cancelInvite = async (user) => {
 }
 
 const getUsersInvites = async () => {
+    if (!canInviteUsers) return;
     loadingInvites.value = true;
     try {
         const response = await fetch('http://localhost:8000/api/company/invitations', {
@@ -307,6 +318,7 @@ const getUsersInvites = async () => {
 }
 
 const getRoles = async () => {
+    if (!canManageRoles) return;
     loading.value = true;
     try {
         const response = await fetch('http://localhost:8000/api/roles', {
@@ -334,6 +346,7 @@ const getRoles = async () => {
 //Api  http://localhost:8000/api/company/users
 
 const createUser = async () => {
+    if (!canManageUsers) return;
     try {
 
         let body = {
@@ -369,6 +382,7 @@ const createUser = async () => {
 
 
 const updateRole = async (user) => {
+    if (!canManageRoles) return;
     try {
 
         let body = {
@@ -399,6 +413,7 @@ const updateRole = async (user) => {
 }
 
 const deleteUser = async (user) => {
+    if (!canManageUsers) return;
     try {
 
         const response = await fetch(`http://localhost:8000/api/company/users/${user.id}`, {
@@ -426,6 +441,7 @@ const inviteUserForm = () => {
 }
 
 const inviteUser = async () => {
+    if (!canInviteUsers) return;
     try {
 
         let body = {

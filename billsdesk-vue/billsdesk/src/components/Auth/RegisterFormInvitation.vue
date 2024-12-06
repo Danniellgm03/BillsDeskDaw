@@ -37,7 +37,9 @@ import { ref, onBeforeMount } from 'vue';
 import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
 import Cookies from 'js-cookie'; // Añadir el paquete js-cookie para manejar cookies
+import { useRouter } from 'vue-router';
 
+const router = useRouter();
 
 
 const name = ref('');
@@ -63,7 +65,7 @@ const getInvitationData = async () => {
     const invitationToken = searchParams.get('token');
     if (!invitationToken) {
         alert('No invitation token found');
-        window.location.href = '/login';
+        router.push('/login');
     }
     return invitationToken;
 };
@@ -75,13 +77,13 @@ const handleFetchInvitationData = async (invitationToken) => {
             const errorData = await response.json();
             console.error('Error fetching invitation data:', errorData);
             alert('Error fetching invitation data: ' + (errorData.message || 'Unknown error'));
-            window.location.href = '/login';
+            router.push('/login');
         }
         return await response.json();
     } catch (error) {
         console.error('Error fetching invitation data:', error.message);
         alert('An error occurred while fetching invitation data');
-        window.location.href = '/login';
+        router.push('/login');
     }
 };
 
@@ -135,7 +137,7 @@ const handleRegister = async () => {
                 sameSite: 'Strict', // Mejora la seguridad contra CSRF
                 httpOnly: false, // No HttpOnly porque se usa en el frontend
             });            
-            window.location.href = '/';
+            router.push('/login');
         } else {
             alert('Registration failed: Token not received');
         }

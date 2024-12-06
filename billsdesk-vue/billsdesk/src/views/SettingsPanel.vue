@@ -1,30 +1,34 @@
 <template>
-    <div>
-        <h2>Settings</h2>
-        <Tabs value="2">
-            <TabList>
-                <Tab value="0">Profile</Tab>
-                <Tab value="1">Users</Tab>
-                <Tab value="2">Contacts</Tab>
-            </TabList>
-            <TabPanels>
-                <TabPanel value="0">
-                    <ProfileComponent />
-                </TabPanel>
-                <TabPanel value="1">
-                    <UsersComponent />
-                </TabPanel>
-                <TabPanel value="2">
-                    <ContactsComponent />
-                </TabPanel>
-            </TabPanels>
-        </Tabs>
+  <div>
+    <h2>Settings</h2>
+    <Tabs value="0">
+      <TabList>
+        <!-- Perfil siempre accesible -->
+        <Tab value="0">Profile</Tab>
 
-    </div>
+        <!-- Usuarios (requiere permisos específicos o admin) -->
+        <Tab value="1" v-if="hasPermission(['manage_users', 'manage_roles'])">Users</Tab>
+
+        <!-- Contactos (requiere permisos específicos o admin) -->
+        <Tab value="2" v-if="hasPermission(['manage_contacts', 'view_contacts'])">Contacts</Tab>
+      </TabList>
+      <TabPanels>
+        <TabPanel value="0">
+          <ProfileComponent />
+        </TabPanel>
+        <TabPanel value="1" v-if="hasPermission(['manage_users', 'manage_roles'])">
+          <UsersComponent />
+        </TabPanel>
+        <TabPanel value="2" v-if="hasPermission(['manage_contacts', 'view_contacts'])">
+          <ContactsComponent />
+        </TabPanel>
+      </TabPanels>
+    </Tabs>
+  </div>
 </template>
 
-<script setup>
 
+<script setup>
 import Tabs from 'primevue/tabs';
 import TabList from 'primevue/tablist';
 import Tab from 'primevue/tab';
@@ -33,6 +37,18 @@ import TabPanel from 'primevue/tabpanel';
 import UsersComponent from '@/components/Settings/UsersComponent.vue';
 import ProfileComponent from '@/components/Settings/ProfileComponent.vue';
 import ContactsComponent from '@/components/Settings/ContactsComponent.vue';
+
+import { useAuthStore } from '@/stores/authStore';
+
+const authStore = useAuthStore();
+const userPermissions = authStore.permissions || [];
+const isAdmin = authStore.user?.role === 'admin'; // Define cómo identificar el rol de admin
+
+// Función para verificar permisos
+const hasPermission = (requiredPermissions) => {
+  if (isAdmin) return true; // Si es admin, permite todo
+  return requiredPermissions.some((perm) => userPermissions.includes(perm));
+};
 </script>
 
 <style scoped lang='scss'>

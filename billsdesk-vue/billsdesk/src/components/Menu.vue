@@ -8,47 +8,49 @@
                 <div class="menu_container">
                     <p>Menu</p>
                     <ul>
-                        <li>
-                            <router-link
-                                to="/file-manager"
-                                :class="{ 'active-link': $route.path === '/file-manager' ||  $route.path === '/' }"
-                            >
-                                <i class="pi pi-folder"></i> File manager
-                            </router-link>
-                        </li>
-                        <li>
-                            <router-link
-                                to="/corrector"
-                                :class="{ 'active-link': $route.path.includes('/corrector') }"
-                            >
-                                <i class="pi pi-file-check"></i> Corrector
-                            </router-link>
-                        </li>
-                        <li>
-                            <router-link
-                                to="/mapping-settings"
-                                :class="{ 'active-link': $route.path.includes('/mapping-settings') }"
-                            >
-                                <i class="pi pi-sitemap"></i> Mapping
-                            </router-link>
-                        </li>
-                    </ul>
-                </div>
+                    <li v-if="hasPermission(['manage_files'])">
+                        <router-link
+                        to="/file-manager"
+                        :class="{ 'active-link': $route.path === '/file-manager' || $route.path === '/' }"
+                        >
+                        <i class="pi pi-folder"></i> File manager
+                        </router-link>
+                    </li>
+                    <li v-if="hasPermission( ['manage_invoices'] )">
+                        <router-link
+                        to="/corrector"
+                        :class="{ 'active-link': $route.path.includes('/corrector') }"
+                        >
+                        <i class="pi pi-file-check"></i> Corrector
+                        </router-link>
+                    </li>
+                    <li v-if="hasPermission(['manage_invoices'])">
+                        <router-link
+                        to="/mapping-settings"
+                        :class="{ 'active-link': $route.path.includes('/mapping-settings') }"
+                        >
+                        <i class="pi pi-sitemap"></i> Mapping
+                        </router-link>
+                    </li>
+                </ul>
+
                 <div class="menu_general_container">
                     <p>General</p>
                     <ul>
-                        <li>
-                            <router-link
-                                to="/settings"
-                                :class="{ 'active-link': $route.path.includes('/settings') }"
-                            >
-                                <i class="pi pi-cog"></i> Settings
-                            </router-link>
+                        <li v-if="hasPermission(['manage_users', 'manage_roles', 'meProfile', 'updateProfile', 'manage_companies', 'view_companies', 'manage_invitations', 'manage_contacts', 'view_contacts'])">
+                        <router-link
+                            to="/settings"
+                            :class="{ 'active-link': $route.path.includes('/settings') }"
+                        >
+                            <i class="pi pi-cog"></i> Settings
+                        </router-link>
                         </li>
                     </ul>
                 </div>
+            </div>
+
             </nav>
-            <footer @click="toggle">
+            <footer>
                 <Avatar :label="user_data?.name[0] ?? 'A'" class="mr-2" shape="circle" />
                 <div>
                     <p class="name_user">{{user_data?.name ?? 'User'}} </p>
@@ -62,18 +64,23 @@
 
 
 <script setup>
-    import Avatar from 'primevue/avatar';
-    import Popover from 'primevue/popover';
+import Avatar from 'primevue/avatar';
+import { ref } from 'vue';
+import { useAuthStore } from '@/stores/authStore'; // Importa el store
 
-    import { ref } from 'vue';
+const authStore = useAuthStore(); // Accede al store de autenticación
+const user_data = JSON.parse(localStorage.getItem('user_data'));
 
-    const op = ref(true);
+const hasPermission = (requiredPermissions) => {
+  // Comprueba si el usuario es administrador
+  const isAdmin = authStore.user?.role === 'admin'; // Ajusta según cómo identifiques al administrador
 
-    const user_data = JSON.parse(localStorage.getItem('user_data'));
+  if (isAdmin) return true; // Si es administrador, siempre tiene permisos
 
-    const toggle = (event) => {
-        op.value.toggle(event);
-    }
+  // Verifica si el usuario tiene los permisos requeridos
+  if (!authStore.permissions) return false;
+  return requiredPermissions.some((perm) => authStore.permissions.includes(perm));
+};
 
 </script>
 

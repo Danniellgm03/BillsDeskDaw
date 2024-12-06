@@ -16,11 +16,16 @@ import NewTemplateInvoice from '@/views/mappings_views/invoiceTemplate_views/New
 import ExistingTemplateInvoiceView from '@/views/mappings_views/invoiceTemplate_views/ExistingTemplateInvoiceview.vue';
 import EditTemplateInvoice from '@/views/mappings_views/invoiceTemplate_views/EditTemplateInvoiceView.vue';
 import Finish from '@/views/mappings_views/FinishView.vue';
+import { useAuthStore } from '@/stores/authStore';
+import ResetPassword from '@/views/ResetPassword.vue';
+import ForgotPassword from '@/views/ForgotPassword.vue';
 
 
 const routes = [
   { path: '/login', component: Login },
   { path: '/register', component: Register },
+  { path: '/forgot-password', component: ForgotPassword },
+  { path: '/reset-password', component: ResetPassword },
   { path: '/register/invite/', component: RegisterWithInvitation },
    {
     path: '/',
@@ -28,11 +33,12 @@ const routes = [
     meta: { requiresAuth: true },
     children: [
       { path: '', component: FileManager },
-      { path: 'file-manager', component: FileManager},
-      { path: 'corrector', component: Corrector},
+      { path: 'file-manager', component: FileManager,  meta: { permission: ['manage_files'] }},
+      { path: 'corrector', component: Corrector, meta: { permission: ['manage_invoices'] }},
       {
         path: 'mapping-settings', 
         component: MappingSettings,
+        meta: { permission: ['manage_invoices'] },
         children: [
           {
             redirect: '/mapping-settings/selecting-files',
@@ -53,7 +59,7 @@ const routes = [
           { path: 'finish', component: Finish }
         ]
       },
-      { path: 'settings', component: SettingsPanel},
+      { path: 'settings', component: SettingsPanel, meta: { permission: ['manage_users', 'manage_roles', 'meProfile', 'updateProfile', 'manage_companies', 'view_companies', 'manage_invitations', 'manage_contacts', 'view_contacts'] } },
     ],
   },
 ];
@@ -64,16 +70,61 @@ const router = createRouter({
 });
 
 router.beforeEach((to, from, next) => {
-  const isAuthenticated = Cookies.get('authToken'); // Lee la cookie para verificar la autenticación
+  const authStore = useAuthStore();
+  const isAuthenticated = Cookies.get('authToken');
 
-  if (to.meta.requiresAuth && !isAuthenticated) {
-    next('/login'); // Redirige al login si no está autenticado
-  } else if ((to.path === '/login' || to.path === '/register') && isAuthenticated) {
-    // Si el usuario está autenticado y trata de acceder al login o register, redirige al dashboard
-    next('/');
+  if (!isAuthenticated) {
+    authStore.logout();
+
+    if(to.path === '/forgot-password' || to.path === '/reset-password') {
+      next();
+      return ;
+    }
+
+    // Evita redirigir si ya está en /login
+    if (to.path !== '/login') {
+      next('/login');
+    } else {
+      next(); // Permite permanecer en /login
+    }
   } else {
-    next(); // Permite el acceso a la ruta
+    authStore.loadUserData();
+
+    // Comprueba si la ruta requiere autenticación
+    if (to.meta.requiresAuth && !isAuthenticated) {
+      next('/login');
+    } else {
+      // Comprueba si el usuario es administrador
+      const isAdmin = authStore.user?.role === 'admin'; // Ajusta según cómo definas el rol
+
+      // Si es administrador, permite el acceso
+      if (isAdmin) {
+        next();
+      } else if (to.meta.permission) {
+        // Para usuarios no administradores, verifica los permisos
+        const userPermissions = authStore.permissions || [];
+        const requiredPermissions = Array.isArray(to.meta.permission)
+          ? to.meta.permission
+          : [to.meta.permission];
+
+        // Verificar si el usuario tiene al menos uno de los permisos requeridos
+        const hasPermission = requiredPermissions.some((permission) =>
+          userPermissions.includes(permission)
+        );
+
+        if (!hasPermission) {
+          alert('No tienes permiso para acceder a esta página.');
+          next('/'); // Redirige si no tiene permisos
+        } else {
+          next();
+        }
+      } else {
+        next(); // Permite el acceso si no hay restricciones de permisos
+      }
+    }
   }
 });
+
+
 
 export default router;

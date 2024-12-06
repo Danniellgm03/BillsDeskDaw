@@ -1,7 +1,7 @@
 @component('mail::message')
-# You Are Invited!
+# Restablecimiento de contraseña
 
-You have been invited to join our platform. Click the button below to create your account.
+Has solicitado restablecer tu contraseña.
 
 <table align="center" width="100%" cellpadding="0" cellspacing="0" role="presentation">
 <tr>
@@ -9,13 +9,15 @@ You have been invited to join our platform. Click the button below to create you
 <a href="{{ $url }}"
 style="background-color: #3370ff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;"
 target="_blank">
-Register
+Restablecer contraseña
 </a>
 </td>
 </tr>
 </table>
 <br>
 
-Thanks,
-Iludesk
+Si no realizaste esta solicitud, puedes ignorar este mensaje.
+
+Gracias,
+{{ config('app.name') }}
 @endcomponent

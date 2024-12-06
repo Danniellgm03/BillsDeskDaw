@@ -19,6 +19,8 @@ return new class extends Migration
             $table->foreignId('role_id')->constrained();
             $table->foreignId('company_id')->constrained();
             $table->timestamps();
+
+            $table->unique(['email', 'accepted']);
         });
     }
 

@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Invitation;
+use Illuminate\Support\Facades\Password;
+use App\Notifications\ForgotPasswordNotification;
 
 
 
@@ -27,7 +29,8 @@ class AuthController extends Controller
         return response()->json([
             'access_token' => $token,
             'token_type' => 'Bearer',
-            'user' => $user
+            'user' => $user,
+            'permissions' => $user->role->permissions
         ]);
     }
 
@@ -55,7 +58,8 @@ class AuthController extends Controller
         return response()->json([
             'access_token' => $token,
             'token_type' => 'Bearer',
-            'user' => $user
+            'user' => $user,
+            'permissions' => $user->role->permissions
         ], 201);
     }
 
@@ -105,7 +109,93 @@ class AuthController extends Controller
         return response()->json([
             'access_token' => $token,
             'token_type' => 'Bearer',
-            'user' => $user
+            'user' => $user,
+            'permissions' => $user->role->permissions
         ], 201);
     }
+
+    public function forgotPassword(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user) {
+            return response()->json(['message' => 'Si el correo existe, se enviará un email con instrucciones'], 200);
+        }
+
+        // Generar el token
+        $token = Password::broker()->createToken($user);
+
+        // Enviar la notificación personalizada
+        $user->notify(new ForgotPasswordNotification($token));
+
+        return response()->json(['message' => 'Si el correo existe, se enviará un email con instrucciones'], 200);
+    }
+
+    public function resetPassword(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
+            'password' => 'required|string|min:8|confirmed',
+            'token' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        // Buscar el usuario por email
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user) {
+            return response()->json(['error' => 'Usuario no encontrado'], 404);
+        }
+
+        if(!Password::broker()->tokenExists($user, $request->token)) {
+            return response()->json(['error' => 'Token no válido'], 404);
+        }
+
+        // Resetear la contraseña
+        Password::broker()->reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function ($user, $password) {
+                $user->password = Hash::make($password);
+                $user->save();
+            }
+        );
+
+        return response()->json(['message' => 'Contraseña restablecida correctamente'], 200);
+    }
+
+    function isValidTokenResetPassword(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
+            'token' => 'required|string'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user) {
+            return response()->json(['error' => 'Usuario no encontrado'], 404);
+        }
+
+        if(!Password::broker()->tokenExists($user, $request->token)) {
+            return response()->json(['error' => 'Token no válido'], 404);
+        }
+
+        return response()->json(['message' => 'Token válido'], 200);
+    }
+
 }

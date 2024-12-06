@@ -35,6 +35,9 @@ import { ref } from 'vue';
 import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
 import Cookies from 'js-cookie'; // Añadir el paquete js-cookie para manejar cookies
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
 
 const name = ref('');
 const email = ref('');
@@ -86,7 +89,7 @@ const handleRegister = async () => {
                 sameSite: 'Strict', // Mejora la seguridad contra CSRF
                 httpOnly: false, // No HttpOnly porque se usa en el frontend
             });            
-            window.location.href = '/';
+            router.push('/');
         } else {
             alert('Registration failed: Token not received');
         }
