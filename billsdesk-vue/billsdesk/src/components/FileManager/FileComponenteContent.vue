@@ -81,6 +81,7 @@ const updateFav = (file) => {
         .name_file {
             font-size: 1em;
             font-weight: 300;
+            text-align: center;
         }
     
         .footer_container {

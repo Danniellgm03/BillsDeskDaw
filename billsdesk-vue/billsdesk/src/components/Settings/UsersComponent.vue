@@ -121,7 +121,7 @@
 
 
          <Dialog v-model:visible="visible" modal header="Create User" :style="{ width: '25rem' }">
-            <form>
+            <form v-if="!loadingCreateFormUser">
                 <div class="field_form">
                     <label for="name">Name</label>
                     <InputText id="name" v-model="form.name" />
@@ -144,9 +144,12 @@
                     <button class="create_user_btn" @click.prevent="createUser">Create</button>
                 </div>
             </form>
+            <div class="loading_container" v-else>
+                <LoadingTemplate/>
+            </div>
         </Dialog>
         <Dialog v-model:visible="visibleInvite" modal header="Invite User" :style="{ width: '25rem' }">
-            <form>
+            <form v-if="!loadingInvitingForm">
                 <div class="field_form">
                     <label for="email">Email</label>
                     <InputText id="email" v-model="form.email" />
@@ -159,6 +162,9 @@
                     <button class="create_user_btn" @click.prevent="inviteUser">Invite</button>
                 </div>
             </form>
+            <div class="loading_container" v-else>
+                <LoadingTemplate/>
+            </div>
         </Dialog>
 
     </div>
@@ -173,6 +179,8 @@ import Skeleton from 'primevue/skeleton';
 import Dialog from 'primevue/dialog';
 import InputText from 'primevue/inputtext';
 import { hasPermission } from '@/utils/permissions'; // Importa la función
+import LoadingTemplate from '@/components/LoadingTemplate.vue';
+
 
 const canManageUsers = hasPermission(['manage_users']);
 const canManageRoles = hasPermission(['manage_roles']);
@@ -185,6 +193,8 @@ const visible = ref(false);
 const visibleInvite = ref(false);
 const loading = ref(true);
 const loadingInvites = ref(true);
+const loadingInvitingForm = ref(false);
+const loadingCreateFormUser = ref(false);
 
 const usersInvites = ref([]);
 
@@ -349,6 +359,7 @@ const createUser = async () => {
     if (!canManageUsers) return;
     try {
 
+        loadingCreateFormUser.value = true;
         let body = {
             name: form.value.name,
             email: form.value.email,
@@ -371,6 +382,7 @@ const createUser = async () => {
         if (response.ok) {
             await getUsers();
             visible.value = false;
+            loadingCreateFormUser.value = false;
         } else {
             console.error(data);
         }
@@ -444,6 +456,7 @@ const inviteUser = async () => {
     if (!canInviteUsers) return;
     try {
 
+        loadingInvitingForm.value = true;
         let body = {
             email: form.value.email,
             role_id: form.value.role.id,
@@ -466,12 +479,15 @@ const inviteUser = async () => {
         
         if (response.ok) {
             visibleInvite.value = false;
+            loadingInvitingForm.value = false;
             await getUsers();
             await getUsersInvites();
             
         } else {
             console.error(data);
         }
+
+
 
     } catch (error) {
         console.error(error);

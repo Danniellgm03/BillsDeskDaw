@@ -69,7 +69,7 @@
                         <strong>Description</strong>
                         <p v-if="!editDescription">{{ selectedFile.file_description }}</p>
                         <Textarea v-if="editDescription" autoResize :rows="3" style="width: 100%;" v-model="selectedFile.file_description" />
-                        <button v-if="editDescription" @click="handleEditDescription(selectedFile)">Save</button>
+                        <button v-if="editDescription" @click="handleEditDescription(selectedFile)" class="button_description">Save</button>
 
                     </div>
                 </div>
@@ -88,68 +88,74 @@
         </Drawer>
 
         <Dialog v-model:visible="addingFile" modal class="modal_file" header="Upload file" :style="{ width: '50rem' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }">
-            <div class="field">
-                 <label><strong>File:</strong></label>
-                <FileUpload
-                    name="file"
-                    :multiple="false"
-                    :fileLimit="1"
-                    :maxFileSize="1000000"
-                    @select="onFileSelect"
-                    v-model="file_form.file"
-                >
-                    <template #header="{ chooseCallback, clearCallback }">
-                        <Button 
-                            icon="pi pi-upload" 
-                            label="Choose File" 
-                            @click="chooseCallback" 
-                        />
-                        <Button 
-                            icon="pi pi-times" 
-                            label="Clear" 
-                            @click="clearCallback"
-                        />
-                        
-                    </template>
-                    <template #empty>
-                        <span>Drag and drop files to here to upload</span>
-                    </template>
-                    <template #content="{ files, uploadedFiles, removeUploadedFileCallback, removeFileCallback }">
-                        <div class="cards-container">
-                            <div 
-                                v-for="file in files" 
-                                :key="file.name" 
-                                class="card"
-                            >
-                                <img 
-                                :src="file.objectURL" 
-                                alt="Uploaded preview" 
-                                v-if="file.type.startsWith('image/')"
-                                class="preview"
-                                />
-                                <div class="card-details">
-                                <h3>{{ file.name }}</h3>
-                                <p>Size: {{ (file.size / 1024).toFixed(2) }} KB</p>
-                                </div>
-                                <Button 
-                                icon="pi pi-trash" 
-                                class="p-button-danger p-button-rounded"
-                                @click="removeFileCallback(file)"
-                                label="Remove"
-                                />
-                            </div>
-                        </div>
-                    </template>
+            <div v-if="!loadingFileUpload">
 
-                </FileUpload>
+                <div class="field">
+                     <label><strong>File:</strong></label>
+                    <FileUpload
+                        name="file"
+                        :multiple="false"
+                        :fileLimit="1"
+                        :maxFileSize="1000000"
+                        @select="onFileSelect"
+                        v-model="file_form.file"
+                    >
+                        <template #header="{ chooseCallback, clearCallback }">
+                            <Button 
+                                icon="pi pi-upload" 
+                                label="Choose File" 
+                                @click="chooseCallback" 
+                            />
+                            <Button 
+                                icon="pi pi-times" 
+                                label="Clear" 
+                                @click="clearCallback"
+                            />
+                            
+                        </template>
+                        <template #empty>
+                            <span>Drag and drop files to here to upload</span>
+                        </template>
+                        <template #content="{ files, uploadedFiles, removeUploadedFileCallback, removeFileCallback }">
+                            <div class="cards-container">
+                                <div 
+                                    v-for="file in files" 
+                                    :key="file.name" 
+                                    class="card"
+                                >
+                                    <img 
+                                    :src="file.objectURL" 
+                                    alt="Uploaded preview" 
+                                    v-if="file.type.startsWith('image/')"
+                                    class="preview"
+                                    />
+                                    <div class="card-details">
+                                    <h3>{{ file.name }}</h3>
+                                    <p>Size: {{ (file.size / 1024).toFixed(2) }} KB</p>
+                                    </div>
+                                    <Button 
+                                    icon="pi pi-trash" 
+                                    class="p-button-danger p-button-rounded"
+                                    @click="removeFileCallback(file)"
+                                    label="Remove"
+                                    />
+                                </div>
+                            </div>
+                        </template>
+    
+                    </FileUpload>
+                </div>
+                <div class="field">
+                    <label><strong>Description:</strong></label>
+                    <Textarea autoResize :rows="3" style="width: 100%;" v-model="file_form.description" />
+                </div>
+                <div class="field field_upload_buttons">
+                    <Button label="Cancel" @click="handleAddFile" />
+                    <Button label="Upload" @click="handleUploadFileServer" />
+                </div>
             </div>
-            <div class="field">
-                <label><strong>Description:</strong></label>
-                <Textarea autoResize :rows="3" style="width: 100%;" v-model="file_form.description" />
-            </div>
-            <div class="field field_upload_buttons">
-                <Button label="Cancel" @click="handleAddFile" />
-                <Button label="Upload" @click="handleUploadFileServer" />
+            <div class="loading_container" v-else>
+                <LoadingTemplate/>
             </div>
         </Dialog>
     </div>
@@ -166,6 +172,8 @@ import LoadingTemplate from '@/components/LoadingTemplate.vue';
 import Dialog from 'primevue/dialog';
 import Textarea from 'primevue/textarea';
 import Paginator from 'primevue/paginator';
+import { useNotificationService } from '@/utils/notificationService';
+const { notify } = useNotificationService();
 
 
 const filterFavorites = ref(false);
@@ -176,6 +184,10 @@ const selectedFile = ref({});
 const files = ref([]);
 const files_loading = ref(true);
 const editDescription = ref(false);
+
+const loadingFileUpload = ref(false);
+
+const dowloadingFile = ref(false);
 
 const file_form = ref({
     file: null,
@@ -204,6 +216,8 @@ const pageChange = async (event) => {
 
 const handleEditDescription = async (file) => {
     try {
+        isDrawerOpen.value = false;
+        files_loading.value = true;
         const response = await fetch(`http://localhost:8000/api/files/${file.id}`, {
             method: 'PUT',
             headers: {
@@ -218,8 +232,19 @@ const handleEditDescription = async (file) => {
         });
         const data = await response.json();
         if (!response.ok) {
+            notify({
+                severity: 'error',
+                summary: 'Error',
+                detail: 'Failed to update description',
+            });
             throw new Error(data.message || 'Failed to update description');
         }
+        notify({
+            severity: 'success',
+            summary: 'Success',
+            detail: 'Description updated successfully',
+        });
+        files.value = await fetchFiles();
         editDescription.value = false;
     } catch (error) {
         console.log(error);
@@ -228,6 +253,7 @@ const handleEditDescription = async (file) => {
 
 const handleUpdateFav = async (file) => {
     try {
+        files_loading.value = true;
         const response = await fetch(`http://localhost:8000/api/files/${file.id}`, {
             method: 'PUT',
             headers: {
@@ -241,9 +267,19 @@ const handleUpdateFav = async (file) => {
         });
         const data = await response.json();
         if (!response.ok) {
+            notify({
+                severity: 'error',
+                summary: 'Error',
+                detail: 'Failed to update favorite',
+            });
             throw new Error(data.message || 'Failed to update favorite');
         }
         files.value = await fetchFiles();
+        notify({
+            severity: 'success',
+            summary: 'Success',
+            detail: 'Favorite updated successfully',
+        });
     } catch (error) {
         console.log(error);
     }
@@ -252,7 +288,6 @@ const handleUpdateFav = async (file) => {
 const handleDownloadFile = (selectedFile) => {
 
     try {
-        
         const url = `http://localhost:8000/api/files/${selectedFile.id}/download`;
         const response = fetch(url, {
             method: 'GET',
@@ -273,12 +308,17 @@ const handleDownloadFile = (selectedFile) => {
 
     } catch (error) {
         console.error('Error al descargar el archivo:', error);
-        alert('No se pudo descargar el archivo. Inténtalo de nuevo.');
+        notify({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Failed to download file',
+        });
     }
 
 };
 
 const handleUploadFileServer = async () => {
+    loadingFileUpload.value = true;
     const formData = new FormData();
 
     formData.append('file', file_form.value.file);
@@ -298,9 +338,24 @@ const handleUploadFileServer = async () => {
             throw new Error(data.message || 'Failed to upload file');
         }
         addingFile.value = false;
+        loadingFileUpload.value = false;
+        file_form.value = {
+            file: null,
+            description: '',
+        };
         files.value = await fetchFiles();
+        notify({
+            severity: 'success',
+            summary: 'Success',
+            detail: 'File uploaded successfully',
+        });
     } catch (error) {
         console.log(error);
+        notify({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Failed to upload file',
+        });
     }
 };
 
@@ -362,6 +417,8 @@ const fetchFiles = async (
 
 const fetchDeleteFile = async (file) => {
     try{
+        isDrawerOpen.value = false;
+        files_loading.value = true;
         const response = await fetch(`http://localhost:8000/api/files/${file.id}`, {
             method: 'DELETE',
             headers: {
@@ -377,9 +434,19 @@ const fetchDeleteFile = async (file) => {
 
         isDrawerOpen.value = false;
         files.value = await fetchFiles();
+        notify({
+            severity: 'success',
+            summary: 'Success',
+            detail: 'File deleted successfully',
+        });
         return data.data;
     } catch (error) {
         console.log(error);
+        notify({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Failed to delete file',
+        });
     }
 }
 
@@ -417,6 +484,11 @@ const searchFile = async () => {
 
     }catch(error){
         console.log(error);
+        notify({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Failed to search files',
+        });
     }
 };
 
@@ -697,6 +769,15 @@ const changeLayout = () => {
         &.d-none{
             display: none;
         }
+    }
+
+    .button_description{
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        border-radius: 5px;
+        cursor: pointer;
     }
 
 
