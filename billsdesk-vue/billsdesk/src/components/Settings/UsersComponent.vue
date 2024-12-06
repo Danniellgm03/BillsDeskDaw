@@ -15,7 +15,6 @@
                 </div>
             </template>
             <template #main>
-               
                     <div class="users_table">
                          <template v-if="loading">
                                 <div class="row_user" v-for="i in 2" :key="i">
@@ -62,6 +61,14 @@
                                 </div>
                             </div>
                         </template>
+                        <div class="pagination" :class="{
+                                'd-none': (users.length <= 0 || loading)
+                            }">
+                            <Paginator v-model:page="pagination.page" 
+                            :totalRecords="pagination.total" 
+                            :rows="pagination.limit"
+                                :rowsPerPageOptions="[3, 5, 15]" @page="pageChange" />
+                        </div>
                    </div>
             </template>
         </SettingsLayout>
@@ -180,6 +187,7 @@ import Dialog from 'primevue/dialog';
 import InputText from 'primevue/inputtext';
 import { hasPermission } from '@/utils/permissions'; // Importa la función
 import LoadingTemplate from '@/components/LoadingTemplate.vue';
+import Paginator from 'primevue/paginator';
 
 
 const canManageUsers = hasPermission(['manage_users']);
@@ -201,6 +209,15 @@ const usersInvites = ref([]);
 const roles = ref([]);
 const users = ref([]);
 
+const pagination = ref({
+    page: 1,
+    last_page: 5,
+    limit: 5,
+    total: 0,
+    search: '',
+});
+
+
 const form = ref({
     name: '',
     email: '',
@@ -213,11 +230,26 @@ const getAuthenticatedUser = () => {
     return JSON.parse(localStorage.getItem('user_data'));
 }
 
-const getUsers = async () => {
+const pageChange = async (event) => {
+    await getUsers(event.page + 1, event.rows, pagination.value.search);
+}
+
+const getUsers = async (
+    page = 1,
+    limit = 3,
+    search = ''
+) => {
     if (!canManageUsers) return;
     loading.value = true;
     try {
-        const response = await fetch('http://localhost:8000/api/company/users', {
+
+        let url = `http://localhost:8000/api/company/users?page=${page}&per_page=${limit}`;
+
+        if (search) {
+            url += `&search=${search}`;
+        }
+
+        const response = await fetch(url, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -228,7 +260,17 @@ const getUsers = async () => {
         const data = await response.json();
         
         if (response.ok) {
-            users.value = data;
+            users.value = data.data;
+
+            pagination.value = {
+                page: data.current_page ,
+                last_page: data.last_page,
+                limit: data.per_page,
+                total: data.total,
+                search: search
+            }
+            loading.value = false;
+
         } else {
             console.error(data);
         }
@@ -236,7 +278,6 @@ const getUsers = async () => {
     } catch (error) {
         console.error(error);
     }
-    loading.value = false;
 }
 
 onBeforeMount(() => {
@@ -425,9 +466,10 @@ const updateRole = async (user) => {
 }
 
 const deleteUser = async (user) => {
+    console.log(user)
     if (!canManageUsers) return;
     try {
-
+        loading.value = true;
         const response = await fetch(`http://localhost:8000/api/company/users/${user.id}`, {
             method: 'DELETE',
             headers: {
@@ -640,6 +682,15 @@ const inviteUser = async () => {
             border-radius: 5px;
             cursor: pointer;
             width: 100%;
+        }
+    }
+
+    .pagination{
+        width: 100%;
+        height: 100%;
+
+        &.d-none{
+            display: none;
         }
     }
 
