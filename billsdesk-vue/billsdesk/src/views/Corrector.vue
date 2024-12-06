@@ -48,6 +48,7 @@
                 <p style="margin-bottom: 20px;margin-top: 20px;"><strong>Preview Corrected: </strong></p>
                 <TableCorrector style="margin-bottom: 20px;margin-top: 20px;" :invoiceProccesed="drawerContentInvoice" />
                 <div class="form-group name_invoice_edit">
+                    <ErrorsComponent :errors="errors"  v-if="errors != null"/>
                     <label for="name_invoice"><strong>Name Invoice:</strong></label>
                     <InputText id="name_invoice" v-model="invoiceSelected.name_invoice" />
                     <label for="status"><strong>Status:</strong></label>
@@ -96,6 +97,9 @@ import { useNotificationService } from '@/utils/notificationService';
 import Select from 'primevue/select';
 import DatePicker from 'primevue/datepicker';
 import Paginator from 'primevue/paginator';
+import ErrorsComponent from '@/components/ErrorsComponent.vue';
+
+const errors = ref(null);
 
 
 const pagination = ref({
@@ -159,7 +163,10 @@ const correctInvoice = async (invoice) => {
     const processedInvoice = await processInvoice(invoice);
     drawerContentInvoice.value = processedInvoice.data;    
 
-    invoiceSelected.value = invoice;
+    invoiceSelected.value = {
+        ...invoice
+    };
+    errors.value = null;
     contacts.value = await getAllContacts();
 
     drawerContentLoading.value = false;
@@ -202,6 +209,7 @@ const searchFile = async () => {
 
 const updateInvoice = async () => {
     try{
+        drawerContentLoading.value = true;
         const response = await fetch(`http://localhost:8000/api/company/invoices/${invoiceSelected.value.id}`, {
             method: 'PUT',
             headers: {
@@ -220,6 +228,9 @@ const updateInvoice = async () => {
         const data = await response.json();
 
         if(data.errors){
+
+            errors.value = data.errors;
+
             notify({
                 severity: 'error',
                 summary: 'Error',
@@ -233,6 +244,8 @@ const updateInvoice = async () => {
             });
         }
 
+        drawerContentLoading.value = false;
+
     } catch (error) {
         console.log(error);
         notify({
@@ -240,6 +253,10 @@ const updateInvoice = async () => {
             summary: 'Error',
             detail: 'An error occurred',
         });
+
+        errors.value = null;
+
+        drawerContentLoading.value = false;
     }
     
 };

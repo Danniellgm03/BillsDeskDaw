@@ -3,6 +3,7 @@
     <h2>Correction Rules for Template:</h2>
     
     <div v-if="!loading">
+      <ErrorsComponent :errors="errors" v-if="errors != null"/>
       <p><strong>
           {{ invoiceTemplate?.template_name }}
       </strong></p>
@@ -116,6 +117,9 @@ import InputText from 'primevue/inputtext';
 import { useRouter } from 'vue-router';
 import LoadingTemplate from '@/components/LoadingTemplate.vue';
 import { useNotificationService } from '@/utils/notificationService';
+import ErrorsComponent from '@/components/ErrorsComponent.vue';
+
+const errors = ref(null);
 
 const { notify } = useNotificationService();
 
@@ -194,6 +198,12 @@ const saveCorrectionRule = async () => {
     });
     const data = await response.json();
 
+    if(data.errors) {
+      errors.value = data.errors;
+      loading.value = false;
+      return;
+    }
+
     ruleData.value = {
       rule_name: '',
       conditions: [],
@@ -215,6 +225,7 @@ const saveCorrectionRule = async () => {
     loading.value = false;
   } catch (error) {
     console.error('Error saving correction rule:', error);
+
     notify({
       severity: 'error',
       summary: 'Error',

@@ -1,6 +1,7 @@
 <template>
     <div>
         <form action="" @submit.prevent="createInvoiceTemplate">
+            <ErrorsComponent :errors="errors" v-if="errors != null"/>
             <div class="form-group">
                 <label for="template_name">Template name</label>
                 <InputText type="text" id="template_name" v-model="invoiceTemplateJson.template_name" :disabled="loading" />
@@ -18,9 +19,11 @@ import Cookies from 'js-cookie';
 import { useRouter } from 'vue-router';  // Asegúrate de importar useRouter
 import InputText from 'primevue/inputtext';
 import { useNotificationService } from '@/utils/notificationService';
+import ErrorsComponent from '@/components/ErrorsComponent.vue';
 
 const { notify } = useNotificationService();
 
+const errors = ref(null);
 
 // Inicializa el router
 const router = useRouter();
@@ -44,6 +47,13 @@ const invoiceTemplateJson = ref({
 
 const createInvoiceTemplate = async () => {
     try {
+
+        if(invoiceTemplateJson.value.template_name === '') {
+            errors.value = errors.value ?? {};
+            errors.value['template_name'] = ['Template name is required'];
+            return;
+        }
+
         loading.value = true;
         const response = await fetch('http://localhost:8000/api/company/invoice-templates', {
             method: 'POST',
@@ -61,6 +71,12 @@ const createInvoiceTemplate = async () => {
 
         const data = await response.json();
 
+        if(data.errors) {
+            errors.value = data.errors;
+            loading.value = false;
+            return;
+        }
+
         // Actualiza el store con los datos del template creado
         invoiceTemplateStore.setTemplateName(data.template.template_name);
         invoiceTemplateStore.setTemplateId(data.template.id);
@@ -75,6 +91,8 @@ const createInvoiceTemplate = async () => {
             detail: 'Invoice template created successfully'
         });
 
+        errors.value = null;
+
         
         // Redirigir al usuario a la ruta de "templates existentes"
         router.push('/mapping-settings/invoice-template/existing');
@@ -82,6 +100,10 @@ const createInvoiceTemplate = async () => {
         
     } catch (error) {
         console.error(error);
+
+        errors.value = errors.value ?? {};
+        errors.value['general'] = ['Error creating invoice template'];
+        loading.value = false;
         notify({
             severity: 'error',
             summary: 'Error',
