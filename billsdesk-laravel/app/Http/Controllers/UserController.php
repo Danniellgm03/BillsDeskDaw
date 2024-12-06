@@ -15,11 +15,25 @@ use Illuminate\Support\Facades\Log;
 
 class UserController extends Controller
 {
-    public function index()
+
+    //create index with pagination and search
+    public function index(Request $request)
     {
+
+        $perPage = $request->input('per_page', 5);
+        $search = $request->input('search', '');
+
         $user = Auth::user();
         $company = $user->company;
-        $users = $company->users;
+        $users = $company->users()
+            ->where(function ($query) use ($search) {
+                if ($search) {
+                    $query->where('name', 'like', "%$search%")
+                        ->orWhere('email', 'like', "%$search%");
+                }
+            })
+            ->paginate($perPage);
+
         return response()->json($users);
     }
 
