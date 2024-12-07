@@ -153,8 +153,14 @@ const ruleData = ref({
 });
 
 onBeforeMount(async () => {
-  const data = await fetchCorrectionRules();
-  correctionRules.value = data.correction_rules;
+  if (invoiceTemplate.value.template_id == '' || Object.keys(selectedFile.value).length === 0) {
+    router.push('/mapping-settings/selecting-files');
+    return;
+  }else{
+    const data = await fetchCorrectionRules();
+    correctionRules.value = data.correction_rules;
+  }
+
 });
 
 // Cargar las Correction Rules desde el endpoint
@@ -247,12 +253,6 @@ const saveCorrectionRule = async () => {
   }
 };
 
-// Cargar las reglas de corrección al montar el componente
-onMounted(() => {
-  if (invoiceTemplate.value) {
-    fetchCorrectionRules();
-  }
-});
 
 const fetchSaveInvoice = async () => {
   try {

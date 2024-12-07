@@ -36,6 +36,9 @@ import { computed, ref, onBeforeMount } from 'vue';
 import Cookies from 'js-cookie';
 import InputText from 'primevue/inputtext';
 import LoadingTemplate from '@/components/LoadingTemplate.vue';
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
 
 const mappingColumnsStore = useMappingColumnsStore();
 const columnsToMap = computed(() => mappingColumnsStore.columns); // Obtener las columnas del store
@@ -48,6 +51,13 @@ const loading = ref(false);
 
 // Obtener los encabezados del archivo
 onBeforeMount(async () => {
+
+  console.log(selectedFile.value);
+    if (!selectedFile.value || Object.keys(selectedFile.value).length <= 0 || selectedFile.value.id === null) {
+      router.push('/mapping-settings/selecting-files');
+      return;
+    }
+
     loading.value = true;
     const headers = await getFileHeaders();
     headersFile.value = headers.data;
