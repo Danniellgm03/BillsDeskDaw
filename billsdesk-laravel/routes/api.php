@@ -16,13 +16,13 @@ use App\Http\Controllers\ContactController;
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
-Route::post('/logout', [AuthController::class, 'logout']);
 Route::post('/registerWithInvitation', [AuthController::class, 'registerWithInvitation']);
 Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
 Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 Route::post('isValidTokenResetPassword', [AuthController::class, 'isValidTokenResetPassword']);
 
 Route::middleware(['auth:sanctum'])->group(function () {
+    Route::post('/logout', [AuthController::class, 'logout']);
 
     Route::prefix('/company/users')->group(function () {
         Route::get('/', [UserController::class, 'index'])->middleware(CheckPermission::class.':manage_users,view_users');

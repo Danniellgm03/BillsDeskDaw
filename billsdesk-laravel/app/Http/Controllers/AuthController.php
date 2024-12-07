@@ -67,7 +67,9 @@ class AuthController extends Controller
     {
         $request->user()->currentAccessToken()->delete();
 
-        return response()->json(['message' => 'Token eliminado']);
+        return response()->json([
+            'message' => 'Sesión cerrada exitosamente.'
+        ]);
     }
 
     public function registerWithInvitation(Request $request)
