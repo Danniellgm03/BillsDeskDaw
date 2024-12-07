@@ -56,7 +56,7 @@
                 borderColor: '#'+rule.highlight || '#000',
               }">
                 <label for="">{{ $t('corrector.template.edit.celd_highlight_color') }}</label>
-                <ColorPicker v-model="rule.highlight" :placeholder="$t('corrector.template.edit.highlight_optional')" />
+                <ColorPicker v-model="rule.highlight" :placeholder="$t('corrector.template.edit.highlight_optional')" defaultColor="b1b1b1" />
                 <!-- remove color -->
                  <a @click="rule.highlight = ''" class="remove_color">
                   <i class="pi pi-times"></i>
@@ -66,7 +66,7 @@
                 borderColor: '#'+rule.row_highlight || '#000',
               }">
                 <label for="">{{ $t('corrector.template.edit.row_highlight') }}</label>
-                <ColorPicker v-model="rule.row_highlight" :placeholder="$t('corrector.template.edit.row_highlight_optional')" />
+                <ColorPicker v-model="rule.row_highlight" :placeholder="$t('corrector.template.edit.row_highlight_optional')" defaultColor="b1b1b1" />
                 <!-- remove color -->
                  <a @click="rule.row_highlight = ''" class="remove_color">
                   <i class="pi pi-times"></i>
@@ -94,7 +94,7 @@
                   borderColor: '#'+condition.highlight || '#000',
                 }">
                   <label for="">{{ $t('corrector.template.edit.celd_highlight_color') }}</label>
-                  <ColorPicker v-model="condition.highlight" :placeholder="$t('corrector.template.edit.highlight_optional')" />
+                  <ColorPicker v-model="condition.highlight" :placeholder="$t('corrector.template.edit.highlight_optional')" defaultColor="b1b1b1" />
                   <!-- remove color -->
                   <a @click="condition.highlight = ''" class="remove_color">
                     <i class="pi pi-times"></i>
@@ -105,7 +105,7 @@
                   borderColor: '#'+condition.row_highlight || '#000',
                 }">
                   <label for="">{{ $t('corrector.template.edit.row_highlight') }}</label>
-                  <ColorPicker v-model="condition.row_highlight" :placeholder="$t('corrector.template.edit.row_highlight_optional')" />
+                  <ColorPicker v-model="condition.row_highlight" :placeholder="$t('corrector.template.edit.row_highlight_optional')" defaultColor="b1b1b1" />
                   <!-- remove color -->
                   <a @click="condition.row_highlight = ''" class="remove_color">
                     <i class="pi pi-times"></i>
@@ -142,7 +142,7 @@
               borderColor: '#'+duplicate.row_highlight || '#000',
             }">
               <label for="">{{ $t('corrector.template.edit.row_highlight') }}</label>
-              <ColorPicker v-model="duplicate.row_highlight"  :placeholder="$t('corrector.template.edit.row_highlight_optional')" />
+              <ColorPicker v-model="duplicate.row_highlight"  :placeholder="$t('corrector.template.edit.row_highlight_optional')" defaultColor="b1b1b1" />
               <!-- remove color -->
               <a @click="duplicate.row_highlight = ''" class="remove_color">
                 <i class="pi pi-times"></i>

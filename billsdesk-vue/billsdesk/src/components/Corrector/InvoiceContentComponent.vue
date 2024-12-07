@@ -4,12 +4,14 @@
             <!-- <i class="pi pi-file-check"></i> -->
         </header>
         <i class="pi pi-file"></i>
-        <p class="invoice_id">{{ invoice.id }}</p>
+        <p class="invoice_id">{{ invoice.name_invoice  }}</p>
         <!--  get status, total_amount and saved_amount. If is null, put in the html Not Corrected -->
-        <p class="invoice_status">{{ invoice.status }}</p>
+        <p class="invoice_status" :class="invoice.status.toLowerCase()">{{ invoice.status }}</p>
         <div class="divider"></div>
         <div class="footer_container">
-            <strong>{{ invoice.name_invoice  }}</strong>
+            <div class="date">
+                <p>{{ prettyDate(invoice.created_at) }}</p>
+            </div>
         </div>
     </div>
 </template>
@@ -24,6 +26,11 @@ defineProps({
         required: true,
     },
 });
+
+const prettyDate = (date) => {
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    return new Date(date).toLocaleDateString('es-ES', options);
+};
 
 // Emisor de eventos
 const emit = defineEmits(['correctInvoice']);
@@ -47,6 +54,7 @@ const correctInvoice = (invoice) => {
         flex-direction: column;
         padding: 20px 5px;
         gap: 6px;
+        cursor: pointer;
 
         .rapid_actions {
             width: 100%;
@@ -102,6 +110,32 @@ const correctInvoice = (invoice) => {
     .invoice_container .pi-file-check {
         font-size: 2rem;
         color: #333;
+    }
+
+    .invoice_status{
+        padding: 5px 10px;
+        border-radius: 5px;
+        font-size: .8em !important;
+
+        &.pending {
+            color: #d94a1c;
+            background-color: #ffc8b7;
+        }
+
+        &.corrected {
+            color: #00bd00;
+            background-color: #c9e7cc;
+        }
+
+        &.rejected {
+            color: #ff0000;
+            background-color: #ffd9d9;
+        }
+
+        &.paid{
+            color: #0006ff;
+            background-color: #e0d9ff;
+        }
     }
 
 </style>
