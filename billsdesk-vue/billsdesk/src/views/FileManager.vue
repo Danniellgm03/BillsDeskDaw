@@ -1,7 +1,7 @@
 <template>
     <div>
         <div class="container_header">
-            <h2>FileManager</h2>
+            <h2>{{ $t('file_manager.title') }}</h2>
             <div class="actions_file_manager">
                 <ul>
                     <li :class="{
@@ -15,12 +15,12 @@
             </div>
         </div>
         <div class="search_file">
-            <input v-model="search_input" type="text" placeholder="Search file" @change="searchFile" />
+            <input v-model="search_input" type="text" :placeholder="$t('file_manager.search_file')" @change="searchFile" />
             <i class="pi pi-search" @click="searchFile"></i>
         </div>
         <section class="files_manager">
             <div class="header_file_manager">
-                <h4>Recent Files</h4>
+                <h4>{{ $t('file_manager.recent_files') }}</h4>
                 <div class="view_tab" @click="changeLayout">
                     <button :class="{ active: layout === 'grid_extend' }">
                         <i class="pi pi-table"></i>
@@ -54,7 +54,7 @@
         <Drawer v-model:visible="isDrawerOpen" position="right" class="p-drawer_styled">
             <template #header>
                 <header>
-                    <i class="pi pi-file"></i>File Details
+                    <i class="pi pi-file"></i>{{ $t('file_manager.file_details') }}
                 </header>
             </template>
             <div class="file_details_drawer">
@@ -66,7 +66,7 @@
                     <h2>{{ selectedFile.file_name }}</h2>
                     <p class="file_size">{{ selectedFile.file_size }} {{ selectedFile.file_size_type }}</p>
                     <div class="file_description">
-                        <strong>Description</strong>
+                        <strong>{{ $t('file_manager.description') }}</strong>
                         <p v-if="!editDescription">{{ selectedFile.file_description }}</p>
                         <Textarea v-if="editDescription" autoResize :rows="3" style="width: 100%;" v-model="selectedFile.file_description" />
                         <button v-if="editDescription" @click="handleEditDescription(selectedFile)" class="button_description">Save</button>
@@ -92,7 +92,7 @@
 
                 <div class="field">
                     <ErrorsComponent :errors="file_form.errors" v-if="file_form.errors != null" />
-                     <label><strong>File:</strong></label>
+                     <label><strong>{{ $t('file_manager.file') }}:</strong></label>
                     <FileUpload
                         name="file"
                         :multiple="false"
@@ -105,18 +105,18 @@
                         <template #header="{ chooseCallback, clearCallback }">
                             <Button 
                                 icon="pi pi-upload" 
-                                label="Choose File" 
+                                :label="$t('file_manager.choose_file')" 
                                 @click="chooseCallback" 
                             />
                             <Button 
                                 icon="pi pi-times" 
-                                label="Clear" 
+                                :label="$t('file_manager.clear')"
                                 @click="clearCallback"
                             />
                             
                         </template>
                         <template #empty>
-                            <span>Drag and drop files to here to upload</span>
+                            <span>{{ $t('file_manager.drag_drop_file') }}</span>
                         </template>
                         <template #content="{ files, uploadedFiles, removeUploadedFileCallback, removeFileCallback }">
                             <div class="cards-container">
@@ -133,13 +133,13 @@
                                     />
                                     <div class="card-details">
                                     <h3>{{ file.name }}</h3>
-                                    <p>Size: {{ (file.size / 1024).toFixed(2) }} KB</p>
+                                    <p>{{ $t('file_manager.size') }}: {{ (file.size / 1024).toFixed(2) }} KB</p>
                                     </div>
                                     <Button 
                                     icon="pi pi-trash" 
                                     class="p-button-danger p-button-rounded"
                                     @click="removeFileCallback(file)"
-                                    label="Remove"
+                                    :label="$t('file_manager.remove')"
                                     />
                                 </div>
                             </div>
@@ -148,12 +148,12 @@
                     </FileUpload>
                 </div>
                 <div class="field">
-                    <label><strong>Description:</strong></label>
+                    <label><strong>{{ $t('file_manager.description') }}:</strong></label>
                     <Textarea autoResize :rows="3" style="width: 100%;" v-model="file_form.description" />
                 </div>
                 <div class="field field_upload_buttons">
-                    <Button label="Cancel" @click="handleAddFile" />
-                    <Button label="Upload" @click="handleUploadFileServer" />
+                    <Button :label="$t('file_manager.cancel')" @click="handleAddFile" />
+                    <Button :label="$t('file_manager.upload')" @click="handleUploadFileServer" />
                 </div>
             </div>
             <div class="loading_container" v-else>
@@ -177,6 +177,9 @@ import Paginator from 'primevue/paginator';
 import { useNotificationService } from '@/utils/notificationService';
 const { notify } = useNotificationService();
 import ErrorsComponent from '@/components/ErrorsComponent.vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const filterFavorites = ref(false);
 const search_input = ref('');
@@ -237,15 +240,15 @@ const handleEditDescription = async (file) => {
         if (!response.ok) {
             notify({
                 severity: 'error',
-                summary: 'Error',
-                detail: 'Failed to update description',
+                summary: t('file_manager.error'),
+                detail: t('file_manager.failed_update_description'),
             });
-            throw new Error(data.message || 'Failed to update description');
+            throw new Error(data.message || t('file_manager.failed_update_description'));
         }
         notify({
             severity: 'success',
-            summary: 'Success',
-            detail: 'Description updated successfully',
+            summary: t('file_manager.success'),
+            detail: t('file_manager.success_update_description'),
         });
         files.value = await fetchFiles();
         editDescription.value = false;
@@ -272,16 +275,16 @@ const handleUpdateFav = async (file) => {
         if (!response.ok) {
             notify({
                 severity: 'error',
-                summary: 'Error',
-                detail: 'Failed to update favorite',
+                summary: t('file_manager.error'),
+                detail: t('file_manager.failed_favorite'),
             });
-            throw new Error(data.message || 'Failed to update favorite');
+            throw new Error(data.message || t('file_manager.failed_favorite'));
         }
         files.value = await fetchFiles();
         notify({
             severity: 'success',
-            summary: 'Success',
-            detail: 'Favorite updated successfully',
+            summary: t('file_manager.success'),
+            detail: t('file_manager.favorite_updated'),
         });
     } catch (error) {
         console.log(error);
@@ -313,8 +316,8 @@ const handleDownloadFile = (selectedFile) => {
         console.error('Error al descargar el archivo:', error);
         notify({
             severity: 'error',
-            summary: 'Error',
-            detail: 'Failed to download file',
+            summary: t('file_manager.error'),
+            detail: t('file_manager.failed_download'),
         });
     }
 
@@ -341,7 +344,7 @@ const handleUploadFileServer = async () => {
             file_form.value.errors = data.errors;
             loadingFileUpload.value = false;
 
-            throw new Error(data.message || 'Failed to upload file');
+            throw new Error(data.message || t('file_manager.failed_upload'));
         }
         addingFile.value = false;
         loadingFileUpload.value = false;
@@ -352,15 +355,15 @@ const handleUploadFileServer = async () => {
         files.value = await fetchFiles();
         notify({
             severity: 'success',
-            summary: 'Success',
-            detail: 'File uploaded successfully',
+            summary: t('file_manager.success'),
+            detail:  t('file_manager.file_uploaded'),
         });
     } catch (error) {
         console.log(error);
         notify({
             severity: 'error',
-            summary: 'Error',
-            detail: 'Failed to upload file',
+            summary: t('file_manager.error'),
+            detail: t('file_manager.failed_upload'),
         });
     }
 };
@@ -401,7 +404,7 @@ const fetchFiles = async (
         });
         const data = await response.json();
         if(!response.ok){
-            throw new Error(data.message || 'Failed to fetch files');
+            throw new Error(data.message || t('file_manager.failed_fetch_files'));
         }
         files_loading.value = false;
 
@@ -435,23 +438,23 @@ const fetchDeleteFile = async (file) => {
         });
         const data = await response.json();
         if(!response.ok){
-            throw new Error(data.message || 'Failed to delete file');
+            throw new Error(data.message || t('file_manager.failed_remove_file'));
         }
 
         isDrawerOpen.value = false;
         files.value = await fetchFiles();
         notify({
             severity: 'success',
-            summary: 'Success',
-            detail: 'File deleted successfully',
+            summary: t('file_manager.success'),
+            detail: t('file_manager.file_removed'),
         });
         return data.data;
     } catch (error) {
         console.log(error);
         notify({
             severity: 'error',
-            summary: 'Error',
-            detail: 'Failed to delete file',
+            summary: t('file_manager.error'),
+            detail: t('file_manager.failed_remove_file'),
         });
     }
 }
@@ -483,7 +486,7 @@ const searchFile = async () => {
 
         const data = await response.json();
         if(!response.ok){
-            throw new Error(data.message || 'Failed to search files');
+            throw new Error(data.message || t('file_manager.failed_search_files'));
         }
         files.value = data.data;
         files_loading.value = false;
@@ -492,8 +495,8 @@ const searchFile = async () => {
         console.log(error);
         notify({
             severity: 'error',
-            summary: 'Error',
-            detail: 'Failed to search files',
+            summary: t('file_manager.error'),
+            detail: t('file_manager.failed_search_files'),
         });
     }
 };

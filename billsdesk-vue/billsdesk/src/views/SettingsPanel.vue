@@ -1,16 +1,22 @@
 <template>
   <div>
-    <h2>Settings</h2>
+    <h2>{{ $t('settings.title') }}</h2>
     <Tabs value="0">
       <TabList>
         <!-- Perfil siempre accesible -->
-        <Tab value="0">Profile</Tab>
+        <Tab value="0">
+          {{ $t('settings.profile') }}
+        </Tab>
 
         <!-- Usuarios (requiere permisos específicos o admin) -->
-        <Tab value="1" v-if="hasPermission(['manage_users', 'manage_roles'])">Users</Tab>
+        <Tab value="1" v-if="hasPermission(['manage_users', 'manage_roles'])">
+          {{ $t('settings.users') }}
+        </Tab>
 
         <!-- Contactos (requiere permisos específicos o admin) -->
-        <Tab value="2" v-if="hasPermission(['manage_contacts', 'view_contacts'])">Contacts</Tab>
+        <Tab value="2" v-if="hasPermission(['manage_contacts', 'view_contacts'])">
+          {{ $t('settings.contacts') }}
+        </Tab>
       </TabList>
       <TabPanels>
         <TabPanel value="0">

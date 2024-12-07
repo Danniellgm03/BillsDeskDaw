@@ -11,7 +11,7 @@
     <div v-if="templates <= 0 && !loading" class="container_not_found">
       <img src="/not_found.webp" alt="not found">
          <button class="button_back">
-            <router-link to="/mapping-settings/mapping">Create new template</router-link>
+            <router-link to="/mapping-settings/mapping">{{ $t('corrector.template.create_new') }}</router-link>
         </button>
     </div>
   </div>
@@ -24,6 +24,9 @@ import InvoiceTemplateContent from '@/components/Mapping/InvoiceTemplateContent.
 import Cookies from 'js-cookie';
 import { useRouter } from 'vue-router';  
 import LoadingTemplate from '@/components/LoadingTemplate.vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 
 const router = useRouter();
@@ -52,7 +55,7 @@ const fetchAllTemplateInvoices = async () => {
     });
 
     if (!response.ok) {
-      throw new Error('Error fetching invoice templates');
+      throw new Error(t('corrector.template.file_fetch_invoice_templates'));
     }
 
     const data = await response.json();

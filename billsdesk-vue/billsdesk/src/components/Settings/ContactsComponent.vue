@@ -2,15 +2,17 @@
     <div>
         <SettingsLayout>
             <template #info>
-                <h2>Contacts</h2>
+                <h2>
+                    {{ $t('settings.contact_templates.title') }}
+                </h2>
                 <p>
-                    Associating contacts with invoices helps you manage your business more efficiently. By linking a contact to an invoice, you can keep your records organized, ensuring every invoice is tied to the right person or company. This makes it easier to track payment history and communicate quickly when needed.
+                    {{ $t('settings.contact_templates.p1') }}
                 </p>
                 <p>
-                    Additionally, associating contacts allows you to generate better reports and gain insights into client contributions and payment trends. It also improves customer relationship management by personalizing communication and fostering stronger connections with your clients.
+                    {{ $t('settings.contact_templates.p2') }}
                 </p>
                 <p>
-                    Start associating contacts with invoices today and streamline your workflow while improving customer interactions!
+                    {{ $t('settings.contact_templates.p3') }}
                 </p>
             </template>
             <template #main>
@@ -19,28 +21,40 @@
                 }">
                     <ErrorsComponent :errors="errors" v-if="(Object.keys(errors)).length > 0" />
                     <div class="form-group">
-                        <label for="name" class="form-label">Name</label>
+                        <label for="name" class="form-label">
+                            {{ $t('settings.contact_templates.name') }}
+                        </label>
                         <InputText type="text" class="form-control" id="name" v-model="contact.name"/>
                     </div>
                     <div class="form-group">
-                        <label for="email" class="form-label">Email</label>
+                        <label for="email" class="form-label">
+                            {{ $t('settings.contact_templates.email') }}
+                        </label>
                         <InputText type="email" class="form-control" id="email" v-model="contact.email"/>
                     </div>
                     <div class="form-group">
-                        <label for="phone" class="form-label">Phone</label>
+                        <label for="phone" class="form-label">
+                            {{ $t('settings.contact_templates.phone') }}
+                        </label>
                         <InputText type="text" class="form-control" id="phone" v-model="contact.phone"/>
                     </div>
                     <div class="form-group">
-                        <label for="address" class="form-label">Address</label>
+                        <label for="address" class="form-label">
+                            {{ $t('settings.contact_templates.address') }}
+                        </label>
                         <InputText type="text" class="form-control" id="address" v-model="contact.address"/>
                     </div>
-                    <button type="submit" class="btn btn-primary">Create</button>
+                    <button type="submit" class="btn btn-primary">
+                        {{ $t('settings.contact_templates.create_contact') }}
+                    </button>
                 </form>
             </template>
         </SettingsLayout>
         <div class="divider"></div>
         <section class="contacts_container">
-            <h3>Contacts</h3>
+            <h3>
+                {{ $t('settings.contact_templates.title') }}
+            </h3>
             <div class="contacts" v-if="!loading">
                 <ContactComponentContent v-for="contact in contacts" :contact="contact" :key="contact.id" @editContact="editContact"/>
             </div>
@@ -55,7 +69,7 @@
         <Drawer v-model:visible="isDrawerOpen" position="right" class="p-drawer_styled">
                <template #header>
                 <header>
-                    <i class="pi pi-file"></i>Contact Edit
+                    <i class="pi pi-file"></i> {{ $t('settings.contact_templates.contact_edit') }}
                 </header>
             </template>
             <form @submit.prevent="updateContact" class="form_contact" :class="{
@@ -63,22 +77,32 @@
             }" >
                 <ErrorsComponent :errors="errorsEdit" v-if="(Object.keys(errorsEdit)).length > 0" />
                 <div class="form-group" >
-                    <label for="name" class="form-label">Name</label>
+                    <label for="name" class="form-label">
+                        {{ $t('settings.contact_templates.name') }}
+                    </label>
                     <InputText type="text" class="form-control" id="name" v-model="contactSelected.name" :disabled="editLoading"/>
                 </div>
                 <div class="form-group">
-                    <label for="email" class="form-label">Email</label>
+                    <label for="email" class="form-label">
+                        {{ $t('settings.contact_templates.email') }}
+                    </label>
                     <InputText type="email" class="form-control" id="email" v-model="contactSelected.email"  :disabled="editLoading"/>
                 </div>
                 <div class="form-group">
-                    <label for="phone" class="form-label">Phone</label>
+                    <label for="phone" class="form-label">
+                        {{ $t('settings.contact_templates.phone') }}
+                    </label>
                     <InputText type="text" class="form-control" id="phone" v-model="contactSelected.phone"  :disabled="editLoading"/>
                 </div>
                 <div class="form-group">
-                    <label for="address" class="form-label">Address</label>
+                    <label for="address" class="form-label">
+                        {{ $t('settings.contact_templates.address') }}
+                    </label>
                     <InputText type="text" class="form-control" id="address" v-model="contactSelected.address"  :disabled="editLoading"/>
                 </div>
-                <button type="submit" class="btn btn-primary" >Update</button>
+                <button type="submit" class="btn btn-primary" >
+                    {{ $t('settings.contact_templates.update_contact') }}
+                </button>
             </form>
         </Drawer>
 
@@ -98,6 +122,9 @@ import LoadingTemplate from '@/components/LoadingTemplate.vue';
 import { useNotificationService } from '@/utils/notificationService';
 const { notify } = useNotificationService();
 import ErrorsComponent from '../ErrorsComponent.vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 
 const errors = ref({});
@@ -138,8 +165,8 @@ const updateContact = async () => {
         if ( contactSelected.value.email === '' || contactSelected.value.phone === '' || contactSelected.value.address === '') {
             notify({
                 severity: 'error',
-                summary: 'Error',
-                detail: 'All fields are required',
+                summary: t('error'),
+                detail: t('all_fields_are_required'),
             });
             return;
         }
@@ -168,8 +195,8 @@ const updateContact = async () => {
         editLoading.value = false;
         notify({
             severity: 'success',
-            summary: 'Success',
-            detail: 'Contact updated successfully',
+            summary: t('success'),
+            detail: t('settings.contact_templates.contact_updated'),
         });
         errorsEdit.value = {};
         return data;
@@ -177,8 +204,8 @@ const updateContact = async () => {
         console.log(error)
         notify({
             severity: 'error',
-            summary: 'Error',
-            detail: 'Error updating contact',
+            summary: t('error'),
+            detail:  t('settings.contact_templates.failed_update_contact'),
         });
     }
 }
@@ -209,8 +236,8 @@ const createContact = async () =>{
         if (contact.value.name === '' || contact.value.email === '' || contact.value.phone === '' || contact.value.address === '') {
             notify({
                 severity: 'error',
-                summary: 'Error',
-                detail: 'All fields are required',
+                summary: t('error'),
+                detail: t('all_fields_are_required'),
             });
             return;
         }
@@ -239,8 +266,8 @@ const createContact = async () =>{
         contacts.value = await fetchAllContacts();
         notify({
             severity: 'success',
-            summary: 'Success',
-            detail: 'Contact created successfully',
+            summary: t('success'),
+            detail: t('settings.contact_templates.contact_created'),
         });
         contact.value = {
             name: '',
@@ -254,8 +281,8 @@ const createContact = async () =>{
         console.log(error)
         notify({
             severity: 'error',
-            summary: 'Error',
-            detail: 'Error creating contact',
+            summary: t('error'),
+            detail: t('settings.contact_templates.failed_create_contact'),
         });
     }
 }

@@ -1,22 +1,32 @@
 <template>
     <AuthLayout :loading="loading">
         <template #left-content v-if="!invalidToken">
-            <h2>Reset Password</h2>
-            <p>Please enter your new password below.</p>
+            <h2>{{ $t('auth.reset_password') }}</h2>
+            <p>{{ $t('auth.reset_password_desc', 'Please enter your new password below.') }}</p>
             <div class="form-group">
-                <label for="password">Password</label>
-                <InputText id="password" v-model="password" type="password" placeholder="Enter your password" />
+                <label for="password">{{ $t('auth.password') }}</label>
+                <InputText 
+                    id="password" 
+                    v-model="password" 
+                    type="password" 
+                    :placeholder="$t('auth.enter_password')" 
+                />
             </div>
             <div class="form-group">
-                <label for="confirmPassword">Confirm Password</label>
-                <InputText id="confirmPassword" v-model="confirmPassword" type="password" placeholder="Confirm your password" />
+                <label for="confirmPassword">{{ $t('auth.confirm_password') }}</label>
+                <InputText 
+                    id="confirmPassword" 
+                    v-model="confirmPassword" 
+                    type="password" 
+                    :placeholder="$t('auth.enter_confirm_password')" 
+                />
             </div>
-            <Button label="Reset" @click="handleResetPassword" />
+            <Button :label="$t('auth.reset_password')" @click="handleResetPassword" />
         </template>
         <template #left-content v-else>
-            <h2>Invalid or expired token</h2>
-            <p>The token you provided is invalid or has expired. Please request a new password reset link.</p>
-            <Button label="Go login" @click="toLogin"></Button>
+            <h2>{{ $t('auth.invalid_token', 'Invalid or expired token') }}</h2>
+            <p>{{ $t('auth.invalid_token_desc', 'The token you provided is invalid or has expired. Please request a new password reset link.') }}</p>
+            <Button :label="$t('auth.go_login', 'Go login')" @click="toLogin"></Button>
         </template>
     </AuthLayout>
 </template>
@@ -27,6 +37,9 @@ import { ref, onBeforeMount } from 'vue';
 import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const router = useRouter();
 
@@ -42,35 +55,31 @@ const toLogin = () => {
     router.push('/login');
 };
 
-
 const isValidTokenResetPassword = async (token_str, email_str) => {
-  try {
-    loading.value = true;
-    const response = await fetch('http://localhost:8000/api/isValidTokenResetPassword', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        email: email_str,
-        token: token_str,
-      }),
-    });
+    try {
+        loading.value = true;
+        const response = await fetch('http://localhost:8000/api/isValidTokenResetPassword', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                email: email_str,
+                token: token_str,
+            }),
+        });
 
-    if(response.status == '404'){
-        invalidToken.value = true;
-        return;
+        if (response.status === 404) {
+            invalidToken.value = true;
+            return;
+        }
+    } catch (error) {
+        console.error(t('auth.error_validating_token'), error);
+        router.push('/login');
+    } finally {
+        loading.value = false;
     }
-
-  } catch (error) {
-    console.error('Error validating token:', error);
-    router.push('/login');
-  } finally {
-    loading.value = false;
-  }
 };
-
-
 
 // Extraer token y email de la URL
 onBeforeMount(async () => {
@@ -79,7 +88,7 @@ onBeforeMount(async () => {
     email.value = searchParams.get('email');
 
     if (!token.value || !email.value) {
-        alert('Invalid or missing token/email');
+        alert(t('auth.invalid_or_missing_token_email'));
         router.push('/login');
     }
 
@@ -89,12 +98,12 @@ onBeforeMount(async () => {
 // Manejar el restablecimiento de contraseña
 const handleResetPassword = async () => {
     if (!password.value || !confirmPassword.value) {
-        alert('Please fill in all fields');
+        alert(t('auth.fill_all_fields'));
         return;
     }
 
     if (password.value !== confirmPassword.value) {
-        alert('Passwords do not match');
+        alert(t('auth.password_mismatch'));
         return;
     }
 
@@ -116,20 +125,21 @@ const handleResetPassword = async () => {
 
         if (!response.ok) {
             const errorData = await response.json();
-            console.error('Error resetting password:', errorData);
-            alert('Reset password failed: ' + (errorData.message || 'Unknown error'));
+            console.error(t('auth.error_resetting_password'), errorData);
+            alert(t('auth.reset_password_failed', { message: errorData.message || t('auth.unknown_error') }));
             return;
         }
 
-        alert('Password reset successfully. Please log in.');
+        alert(t('auth.reset_password_success'));
         router.push('/login');
     } catch (error) {
-        console.error('Error resetting password:', error.message);
-        alert('An error occurred during password reset');
+        console.error(t('auth.error_resetting_password'), error.message);
+        alert(t('auth.error_occurred'));
     } finally {
         loading.value = false;
     }
 };
 </script>
+
 
 <style scoped lang='scss'></style>

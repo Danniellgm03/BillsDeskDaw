@@ -3,10 +3,10 @@
         <form action="" @submit.prevent="createInvoiceTemplate">
             <ErrorsComponent :errors="errors" v-if="errors != null"/>
             <div class="form-group">
-                <label for="template_name">Template name</label>
+                <label for="template_name">{{ $t('corrector.template.template_name') }}</label>
                 <InputText type="text" id="template_name" v-model="invoiceTemplateJson.template_name" :disabled="loading" />
             </div>
-            <button type="submit" :disabled="loading">Save</button>
+            <button type="submit" :disabled="loading">{{ $t('save') }}</button>
         </form>
     </div>
 </template>
@@ -20,6 +20,9 @@ import { useRouter } from 'vue-router';  // Asegúrate de importar useRouter
 import InputText from 'primevue/inputtext';
 import { useNotificationService } from '@/utils/notificationService';
 import ErrorsComponent from '@/components/ErrorsComponent.vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const { notify } = useNotificationService();
 
@@ -50,7 +53,7 @@ const createInvoiceTemplate = async () => {
 
         if(invoiceTemplateJson.value.template_name === '') {
             errors.value = errors.value ?? {};
-            errors.value['template_name'] = ['Template name is required'];
+            errors.value['template_name'] = [t('corrector.template.template_name_is_required')];
             return;
         }
 
@@ -66,7 +69,7 @@ const createInvoiceTemplate = async () => {
         });
 
         if (!response.ok) {
-            throw new Error('Error creating invoice template');
+            throw new Error(t('corrector.template.error_create_template'));
         }
 
         const data = await response.json();
@@ -87,8 +90,8 @@ const createInvoiceTemplate = async () => {
 
         notify({
             severity: 'success',
-            summary: 'Success',
-            detail: 'Invoice template created successfully'
+            summary: t('success'),
+            detail: t('corrector.template.template_created')
         });
 
         errors.value = null;
@@ -102,12 +105,12 @@ const createInvoiceTemplate = async () => {
         console.error(error);
 
         errors.value = errors.value ?? {};
-        errors.value['general'] = ['Error creating invoice template'];
+        errors.value['general'] = [t('corrector.template.error_create_template')];
         loading.value = false;
         notify({
             severity: 'error',
-            summary: 'Error',
-            detail: 'Error creating invoice template'
+            summary: t('error'),
+            detail: t('corrector.template.error_create_template')
         });
     }
 };

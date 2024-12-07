@@ -1,15 +1,15 @@
 <template>
     <div>
         <div class="container_header">
-            <h2>Corrector</h2>
+            <h2>{{ $t('corrector.title') }}</h2>
         </div>
         <div class="search_file">
-            <input v-model="search_input" type="text" placeholder="Search Invoice By Id or Name" @change="searchFile" />
+            <input v-model="search_input" type="text" :placeholder="$t('corrector.search_input')" @change="searchFile" />
             <i class="pi pi-search" @click="searchFile"></i>
         </div>
         <section class="invoices_manager">
             <div class="header_invoice_manager">
-                <h4>Recent Invoices</h4>
+                <h4>{{ $t('corrector.recent_invoices') }}</h4>
                 <div class="view_tab" @click="changeLayout">
                     <button :class="{ active: layout === 'grid_extend' }">
                         <i class="pi pi-table"></i>
@@ -41,39 +41,39 @@
         <Drawer v-model:visible="isDrawerOpen" style="width: 50% !important;"  position="right" class="p-drawer_styled" :visible="isDrawerOpen" :modal="true" :showHeader="false" :baseZIndex="10000" @onHide="isDrawerOpen = false">
              <template #header>
                 <header>
-                    <i class="pi pi-file"></i>Invoice Corrector
+                    <i class="pi pi-file"></i> {{ $t('corrector.drawer_title') }}
                 </header>
             </template>
             <div v-if="!drawerContentLoading">
-                <p style="margin-bottom: 20px;margin-top: 20px;"><strong>Preview Corrected: </strong></p>
+                <p style="margin-bottom: 20px;margin-top: 20px;"><strong>{{ $t('corrector.preview_corrected') }}: </strong></p>
                 <TableCorrector style="margin-bottom: 20px;margin-top: 20px;" :invoiceProccesed="drawerContentInvoice" />
                 <div class="form-group name_invoice_edit">
                     <ErrorsComponent :errors="errors"  v-if="errors != null"/>
-                    <label for="name_invoice"><strong>Name Invoice:</strong></label>
+                    <label for="name_invoice"><strong>{{ $t('corrector.name_invoice') }}:</strong></label>
                     <InputText id="name_invoice" v-model="invoiceSelected.name_invoice" />
-                    <label for="status"><strong>Status:</strong></label>
+                    <label for="status"><strong>{{ $t('corrector.status') }}:</strong></label>
                     <Select name="status" id="status" v-model="invoiceSelected.status" :options="optionsSelect" 
-                    optionLabel="name" optionValue="value" placeholder="Select Status"/>
+                    optionLabel="name" optionValue="value" :placeholder="$t('corrector.select_status')"/>
                     <br>
                     <br>
-                    <label for="date_to_pay"><strong>Date to pay:</strong></label>
+                    <label for="date_to_pay"><strong>{{ $t('corrector.date_to_pay') }}:</strong></label>
                     <DatePicker v-model="invoiceSelected.date_to_pay"  @update:modelValue="checkDate"/>
                     <p v-if="dateWarning" style="color: red; font-weight: bold;margin-top: 10px;">
-                        <strong>The payment date has already passed!</strong>
+                        <strong>{{ $t('corrector.payment_date') }}</strong>
                     </p>
                     <br>
                     <br>
-                    <label for="contact_id"><strong>Contact:</strong></label>
+                    <label for="contact_id"><strong>{{ $t('corrector.contact') }}:</strong></label>
                     <Select name="contact_id" id="contact_id" v-model="invoiceSelected.contact_id" :options="contacts"
-                    optionLabel="name" optionValue="id" placeholder="Select Contact"/>
+                    optionLabel="name" optionValue="id" :placeholder="$t('corrector.select_contact')"/>
                     <br>
                     <button class="save_name" @click="updateInvoice" style="margin-top: 10px;">
-                        Update
+                       {{ $t('corrector.update') }}
                     </button>
                 </div>
                 <button class="download_button" @click="downloadCorrected(invoiceSelected)">
                     <i class="pi pi-download"></i>
-                    Download corrected
+                    {{ $t('corrector.download_corrected') }}
                 </button>
             </div>
             <div class="loading_container" v-else>
@@ -98,6 +98,9 @@ import Select from 'primevue/select';
 import DatePicker from 'primevue/datepicker';
 import Paginator from 'primevue/paginator';
 import ErrorsComponent from '@/components/ErrorsComponent.vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const errors = ref(null);
 
@@ -233,14 +236,14 @@ const updateInvoice = async () => {
 
             notify({
                 severity: 'error',
-                summary: 'Error',
-                detail: 'An error occurred',
+                summary: t('error'),
+                detail: t('corrector.failed_save_invoice'),
             });
         }else{
             notify({
                 severity: 'success',
-                summary: 'Success',
-                detail: 'Correction rule saved successfully',
+                summary: t('success'),
+                detail: t('corrector.invoice_saved'),
             });
         }
 
@@ -250,8 +253,8 @@ const updateInvoice = async () => {
         console.log(error);
         notify({
             severity: 'error',
-            summary: 'Error',
-            detail: 'An error occurred',
+            summary: t('error'),
+            detail: t('corrector.failed_save_invoice'),
         });
 
         errors.value = null;

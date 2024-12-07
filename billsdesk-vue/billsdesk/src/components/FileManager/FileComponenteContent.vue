@@ -10,7 +10,9 @@
         <p class="name_file">{{ file.file_name }}</p>
         <div class="divider"></div>
         <div class="footer_container">
-            <strong>File Size</strong>
+            <strong>
+                {{ $t('file_size') }}:
+            </strong>
             <p>{{ file.file_size }} {{ file.file_size_type }}</p>
         </div>
     </div>

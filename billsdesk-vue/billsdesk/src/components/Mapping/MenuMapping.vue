@@ -1,26 +1,39 @@
 <template>
   <div>
     <ul>
-      <li :class="{
-        active: $route.path === '/mapping-settings/selecting-files'
-      }"><router-link to="/mapping-settings/selecting-files">Selecting file<i class="pi pi-chevron-right"></i></router-link></li>
-      <li :class="{
-        active: $route.path === '/mapping-settings/invoice-template'
-      }"><router-link to="/mapping-settings/invoice-template">Invoice template<i class="pi pi-chevron-right"></i></router-link></li>
-      <li
-      :class="{
-        active: $route.path === '/mapping-settings/mapping' 
-        || $route.path.includes('/invoice-template/new') 
-        || $route.path.includes('/invoice-template/edit')
-        || $route.path.includes('/invoice-template/existing')
-      }"
-      ><router-link to="/mapping-settings/mapping">Mapping<i class="pi pi-chevron-right"></i></router-link></li>
-      <li :class="{
-        active: $route.path === '/mapping-settings/correction-rules'
-      }"><router-link to="/mapping-settings/correction-rules">Correction Rules<i class="pi pi-chevron-right"></i></router-link></li>
+      <li :class="{ active: $route.path === '/mapping-settings/selecting-files' }">
+        <router-link to="/mapping-settings/selecting-files">
+          {{ $t('menu_mapping.selecting_files') }}
+          <i class="pi pi-chevron-right"></i>
+        </router-link>
+      </li>
+      <li :class="{ active: $route.path === '/mapping-settings/invoice-template' }">
+        <router-link to="/mapping-settings/invoice-template">
+          {{ $t('menu_mapping.invoice_template') }}
+          <i class="pi pi-chevron-right"></i>
+        </router-link>
+      </li>
+      <li :class="{ 
+        active: $route.path === '/mapping-settings/mapping' || 
+                $route.path.includes('/invoice-template/new') || 
+                $route.path.includes('/invoice-template/edit') || 
+                $route.path.includes('/invoice-template/existing') 
+      }">
+        <router-link to="/mapping-settings/mapping">
+          {{ $t('menu_mapping.mapping') }}
+          <i class="pi pi-chevron-right"></i>
+        </router-link>
+      </li>
+      <li :class="{ active: $route.path === '/mapping-settings/correction-rules' }">
+        <router-link to="/mapping-settings/correction-rules">
+          {{ $t('menu_mapping.correction_rules') }}
+          <i class="pi pi-chevron-right"></i>
+        </router-link>
+      </li>
     </ul>
   </div>
 </template>
+
 
 <script setup></script>
 

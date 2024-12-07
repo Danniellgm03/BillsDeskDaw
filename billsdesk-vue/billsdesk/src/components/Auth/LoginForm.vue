@@ -1,23 +1,37 @@
 <template>
     <AuthLayout :loading="loading">
         <template #left-content>
-            <h2>Welcome back</h2>
-            <p>Welcome back! Please enter your details</p>
+            <h2>
+              {{ $t('auth.welcome_back') }}
+            </h2>
+            <p>
+              {{ $t('auth.login_desc') }}
+            </p>
 
             <div class="form-group">
-                <label for="email">Email</label>
-                <InputText id="email" v-model="email" type="email" placeholder="Enter your email" />
+                <label for="email">
+                  {{ $t('auth.email') }}
+                </label>
+                <InputText id="email" v-model="email" type="email" :placeholder="$t('auth.enter_email')" />
             </div>
             <div class="form-group">
-                <label for="password">Password</label>
-                <InputText id="password" v-model="password" type="password" placeholder="Enter your password" />
+                <label for="password">
+                  {{ $t('auth.password') }}
+                </label>
+                <InputText id="password" v-model="password" type="password" :placeholder="$t('auth.enter_password')" />
             </div>
             <div class="forgot-password">
-                <RouterLink to="/forgot-password">Forgot password</RouterLink>
+                <RouterLink to="/forgot-password">
+                    {{ $t('auth.forgot_password') }}
+                </RouterLink>
             </div>
-            <Button label="Sign In" @click="handleLogin" />
+            <Button :label="$t('auth.login')" @click="handleLogin" />
             <div class="register_link">
-                <p>Don't have an account? <RouterLink to="/register">Register</RouterLink></p>
+                <p>
+                  {{ $t('auth.dont_have_account') }}
+                  <RouterLink to="/register">
+                    {{ $t('auth.register') }}
+                </RouterLink></p>
             </div>
         </template>
     </AuthLayout>
@@ -30,6 +44,9 @@ import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
 import { useAuthStore } from '@/stores/authStore';
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const router = useRouter();
 
@@ -57,22 +74,21 @@ const handleLogin = async () => {
     if (!response.ok) {
       const errorData = await response.json();
       console.error('Error logging in:', errorData);
-      alert('Login failed: ' + (errorData.message || 'Unknown error'));
+      alert(t('auth.login_failed') + ': ' + (errorData.message || 'Unknown error'));
       return;
     }
 
     const data = await response.json();
-    console.log('Login successful:', data);
 
     if (data.access_token) {
       await authStore.setUserData(data.user, `${data.token_type} ${data.access_token}`, data.permissions);
       router.push('/');
     } else {
-      alert('Login failed: Token not received');
+      alert(t('auth.login_failed'));
     }
   } catch (error) {
     console.error('Error logging in:', error.message);
-    alert('An error occurred during login');
+    alert(t('auth.login_failed'));
   }
   loading.value = false;
 };

@@ -1,16 +1,16 @@
 <template>
     <div>
-        <h2>Template Settings</h2>
+        <h2>{{ $t('corrector.template.title') }}</h2>
         <div v-if="showOptions" >
             <p>
-                Do you want to create a new template or use an existing one?
+                {{ $t('corrector.template.description') }}
             </p>
             <div class="options"> <!-- Las opciones solo se mostrarán si showOptions es true -->
                 <div class="option">
-                    <router-link to="/mapping-settings/mapping" @click="hideOptions">Create new template</router-link>
+                    <router-link to="/mapping-settings/mapping" @click="hideOptions"> {{ $t('corrector.template.create_new') }}</router-link>
                 </div>
                 <div class="option">
-                    <router-link to="/mapping-settings/invoice-template/existing" @click="hideOptions">Use existing template</router-link>
+                    <router-link to="/mapping-settings/invoice-template/existing" @click="hideOptions"> {{ $t('corrector.template.use_existing') }}</router-link>
                 </div>
             </div>
         </div>

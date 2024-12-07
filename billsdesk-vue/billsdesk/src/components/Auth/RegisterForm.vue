@@ -1,33 +1,37 @@
 <template>
     <AuthLayout :loading="loading">
         <template #left-content>
-            <h2>Create an Account</h2>
-            <p>Join us! Please fill in the details to register</p>
+            <h2>{{ $t('auth.register_create') }}</h2>
+            <p>{{ $t('auth.register_desc', 'Join us! Please fill in the details to register') }}</p>
 
             <div class="form-group">
-                <label for="name">Name</label>
-                <InputText id="name" v-model="name" type="text" placeholder="Enter your name" />
+                <label for="name">{{ $t('auth.name', 'Name') }}</label>
+                <InputText id="name" v-model="name" type="text" :placeholder="$t('auth.enter_name', 'Enter your name')" />
             </div>
             <div class="form-group">
-                <label for="email">Email</label>
-                <InputText id="email" v-model="email" type="email" placeholder="Enter your email" />
+                <label for="email">{{ $t('auth.email') }}</label>
+                <InputText id="email" v-model="email" type="email" :placeholder="$t('auth.enter_email')" />
             </div>
             <div class="form-group">
-                <label for="password">Password</label>
-                <InputText id="password" v-model="password" type="password" placeholder="Enter your password" />
+                <label for="password">{{ $t('auth.password') }}</label>
+                <InputText id="password" v-model="password" type="password" :placeholder="$t('auth.enter_password', 'Enter your password')" />
             </div>
             <div class="form-group">
-                <label for="confirmPassword">Confirm Password</label>
-                <InputText id="confirmPassword" v-model="confirmPassword" type="password" placeholder="Confirm your password" />
+                <label for="confirmPassword">{{ $t('auth.confirm_password', 'Confirm Password') }}</label>
+                <InputText id="confirmPassword" v-model="confirmPassword" type="password" :placeholder="$t('auth.enter_confirm_password', 'Confirm your password')" />
             </div>
 
-            <Button label="Register" @click="handleRegister" />
+            <Button :label="$t('auth.register')" @click="handleRegister" />
             <div class="login_link">
-                <p>Already have an account? <RouterLink to="/login">Login</RouterLink></p>
+                <p>
+                    {{ $t('auth.already_have_account', 'Already have an account?') }}
+                    <RouterLink to="/login">{{ $t('auth.login') }}</RouterLink>
+                </p>
             </div>
         </template>
     </AuthLayout>
 </template>
+
 
 <script setup>
 import AuthLayout from '@/layouts/AuthLayout.vue';
@@ -36,6 +40,9 @@ import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
 import Cookies from 'js-cookie'; // Añadir el paquete js-cookie para manejar cookies
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const router = useRouter();
 
@@ -47,7 +54,9 @@ const loading = ref(false);
 
 const handleRegister = async () => {
     if (password.value !== confirmPassword.value) {
-        alert('Passwords do not match');
+        alert(
+            t('password_mismatch')
+        );
         return;
     }
 
@@ -69,7 +78,9 @@ const handleRegister = async () => {
         if (!response.ok) {
             const errorData = await response.json();
             console.error('Error registering:', errorData);
-            alert('Registration failed: ' + (errorData.message || 'Unknown error'));
+            alert(
+                t('auth.registration_failed')
+            );
             return;
         }
 
@@ -91,11 +102,15 @@ const handleRegister = async () => {
             });            
             router.push('/');
         } else {
-            alert('Registration failed: Token not received');
+            alert(
+                t('auth.registration_failed')
+            );
         }
     } catch (error) {
         console.error('Error registering:', error.message);
-        alert('An error occurred during registration');
+        alert(
+            t('auth.registration_failed')
+        );
     } finally {
         loading.value = false;
     }

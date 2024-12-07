@@ -76,7 +76,7 @@ router.beforeEach((to, from, next) => {
   if (!isAuthenticated) {
     authStore.logout();
 
-    if(to.path === '/forgot-password' || to.path === '/reset-password') {
+    if(to.path === '/forgot-password' || to.path === '/reset-password' || to.path === '/register' || to.path === '/register/invite/') {
       next();
       return ;
     }

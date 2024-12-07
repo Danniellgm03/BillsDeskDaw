@@ -2,16 +2,19 @@
     <div>
         <SettingsLayout>
             <template #info>
-                <h4>Users</h4>
+                <h4>
+                    {{ $t('settings.users_settings.title') }}
+                </h4>
                 <p>
-                    Welcome to the User Management section, where you can efficiently manage all user accounts within the platform. Here, 
-                    you have the flexibility to create new users, invite team members to join, and manage existing user roles. Easily grant access, 
-                    assign permissions, or remove users to maintain secure and streamlined operations. This section provides all the tools necessary to ensure each user has the appropriate level of access and to keep your team’s 
-                    accounts organized.
+                    {{ $t('settings.users_settings.desc') }}
                 </p>
                 <div class="actions_users">
-                    <button v-if="canManageUsers" class="action_button" @click="visible = true">Create</button>
-                    <button v-if="canInviteUsers" class="action_button invite" @click="inviteUserForm()">Invite</button>
+                    <button v-if="canManageUsers" class="action_button" @click="visible = true">
+                        {{ $t('settings.users_settings.create_user') }}
+                    </button>
+                    <button v-if="canInviteUsers" class="action_button invite" @click="inviteUserForm()">
+                        {{ $t('settings.users_settings.invite_user') }}
+                    </button>
                 </div>
             </template>
             <template #main>
@@ -40,7 +43,9 @@
                                     <div class="info_user">
                                             <span class="user_name">
                                                 {{ user.name }}
-                                                <i v-if="user.id === authenticatedUser.id" class="pending_label">You</i>
+                                                <i v-if="user.id === authenticatedUser.id" class="pending_label">
+                                                    {{ $t('settings.users_settings.you') }}
+                                                </i>
                                             </span>
                                         <span class="user_email">{{ user.email }}</span>
                                     </div>
@@ -52,7 +57,7 @@
                                         optionLabel="name" 
                                         optionValue="id" 
                                         v-model="user.role_id"
-                                        placeholder="Selecciona un rol"
+                                        :placeholder="$t('settings.users_settings.select_role')"
                                         @change="updateRole(user)"
                                         :disabled="user.id === authenticatedUser.id"
                                         v-if="canManageRoles"
@@ -75,11 +80,11 @@
         <div class="divider"></div>
         <SettingsLayout v-if="canInviteUsers">
             <template #info>
-                <h4>Pending Invites</h4>
+                <h4>
+                    {{ $t('settings.users_settings.pending_invites') }}
+                </h4>
                 <p>
-                    In the Pending Invitations section, you can review and manage outstanding user invitations. Here, you’ll find details on each pending invite, including the recipient’s 
-                    information and the date of issuance. You can resend invitations, 
-                    cancel pending requests, or send reminders as needed. This feature helps you keep track of invite status and ensures a smooth onboarding process for new users.
+                    {{ $t('settings.users_settings.desc_invite') }}
                 </p>
             </template>
             <template #main v-if="canManageUsers">
@@ -107,68 +112,92 @@
                                     {{ user.email.charAt(0).toUpperCase() }}
                                 </span>
                                 <div class="info_user">
-                                    <span class="user_name">{{ user.email.split('@')[0] }}<i class="pending_label">Pending</i></span>
+                                    <span class="user_name">{{ user.email.split('@')[0] }}<i class="pending_label">
+                                        {{ $t('settings.users_settings.pending') }}
+                                    </i></span>
                                     <span class="user_email">{{ user.email }}</span>
                                 </div>
                             </div>
                             <div class="actions">
-                                <button class="action_button" @click="resendInvite(user)">Resend</button>
-                                <button class="action_button cancel" @click="cancelInvite(user)">Cancel</button>
+                                <button class="action_button" @click="resendInvite(user)">
+                                    {{ $t('settings.users_settings.resend') }}
+                                </button>
+                                <button class="action_button cancel" @click="cancelInvite(user)">
+                                    {{ $t('settings.users_settings.cancel') }}
+                                </button>
                             </div>
                         </div>
                     </template>
                 </div>
                 <div v-else>
                     <strong>
-                        No pending invites
+                        {{ $t('settings.users_settings.no_pending_invites') }}
                     </strong>
                 </div>
             </template>
         </SettingsLayout>
 
 
-         <Dialog v-model:visible="visible" modal header="Create User" :style="{ width: '25rem' }">
+         <Dialog v-model:visible="visible" modal :header="$t('settings.users_settings.create_user')" :style="{ width: '25rem' }">
              <form v-if="!loadingCreateFormUser">
                 <ErrorsComponent :errors="errors" v-if="errors " />
                 <div class="field_form">
-                    <label for="name">Name</label>
+                    <label for="name">
+                        {{ $t('settings.users_settings.name') }}
+                    </label>
                     <InputText id="name" v-model="form.name" />
                 </div>
                 <div class="field_form">
-                    <label for="email">Email</label>
+                    <label for="email">
+                        {{ $t('settings.users_settings.email') }}
+                    </label>
                     <InputText id="email" v-model="form.email" />
                 </div>
                 <div class="field_form">
-                    <label for="role">Role</label>
-                    <Select :options="roles" optionLabel="name" placeholder="Select a Role" v-model="form.role" />
+                    <label for="role">
+                        {{ $t('settings.users_settings.role') }}
+                    </label>
+                    <Select :options="roles" optionLabel="name" :placeholder="$t('settings.users_settings.select_role')" v-model="form.role" />
                 </div>
                 <div class="field_form">
-                    <label for="password">Password</label>
+                    <label for="password">
+                        {{ $t('settings.users_settings.password') }}
+                    </label>
                     <InputText id="password" v-model="form.password" />
-                    <label for="password" style="margin-top: 10px;">Confirm Password</label>
+                    <label for="password" style="margin-top: 10px;">
+                        {{ $t('settings.users_settings.confirm_password') }}
+                    </label>
                     <InputText id="password-confirm" v-model="form.password_confirm" />
                 </div>
                 <div class="field_form">
-                    <button class="create_user_btn" @click.prevent="createUser">Create</button>
+                    <button class="create_user_btn" @click.prevent="createUser">
+                        {{ $t('settings.users_settings.create_user') }}
+                    </button>
                 </div>
             </form>
             <div class="loading_container" v-else>
                 <LoadingTemplate/>
             </div>
         </Dialog>
-        <Dialog v-model:visible="visibleInvite" modal header="Invite User" :style="{ width: '25rem' }">
+        <Dialog v-model:visible="visibleInvite" modal :header="$t('settings.users_settings.invite_user')" :style="{ width: '25rem' }">
             <form v-if="!loadingInvitingForm">
                 <ErrorsComponent :errors="errors" v-if="errors " />
                 <div class="field_form">
-                    <label for="email">Email</label>
+                    <label for="email">
+                        {{ $t('settings.users_settings.email') }}
+                    </label>
                     <InputText id="email" v-model="form.email" />
                 </div>
                 <div class="field_form">
-                    <label for="role">Role</label>
-                    <Select :options="roles" optionLabel="name" placeholder="Select a Role" v-model="form.role" />
+                    <label for="role">
+                        {{ $t('settings.users_settings.role') }}
+                    </label>
+                    <Select :options="roles" optionLabel="name" :placeholder="$t('settings.users_settings.select_role')" v-model="form.role" />
                 </div>
                 <div class="field_form">
-                    <button class="create_user_btn" @click.prevent="inviteUser">Invite</button>
+                    <button class="create_user_btn" @click.prevent="inviteUser">
+                        {{ $t('settings.users_settings.invite_user') }}
+                    </button>
                 </div>
             </form>
             <div class="loading_container" v-else>
@@ -191,6 +220,9 @@ import { hasPermission } from '@/utils/permissions'; // Importa la función
 import LoadingTemplate from '@/components/LoadingTemplate.vue';
 import Paginator from 'primevue/paginator';
 import ErrorsComponent from '../ErrorsComponent.vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 
 const canManageUsers = hasPermission(['manage_users']);
@@ -405,23 +437,23 @@ const createUser = async () => {
 
         if(form.value.password !== form.value.password_confirm) {
             errors.value = {
-                password: ['Passwords do not match']
+                password: [t('settings.users_settings.password_mismatch')]
             }
             return;
         }
 
         if (!form.value.role) {
             errors.value = {
-                role: ['Role is required']
+                role: [t('settings.users_settings.role_is_required')]
             }
             return;
         }
 
         if(!form.value.name || !form.value.email || !form.value.password) {
             errors.value = {
-                name: (!form.value.name) ? ['Name is required'] : [],
-                email: (!form.value.email) ? ['Email is required'] : [],
-                password: (!form.value.password) ? ['Password is required'] : [],
+                name: (!form.value.name) ? [t('settings.users_settings.name_is_required')] : [],
+                email: (!form.value.email) ? [t('settings.users_settings.email_is_required')] : [],
+                password: (!form.value.password) ? [t('settings.users_settings.password_is_required')] : [],
             }
             return;
         }
@@ -530,14 +562,14 @@ const inviteUser = async () => {
 
         if (!form.value.role) {
             errors.value = {
-                role: ['Role is required']
+                role: [t('settings.users_settings.role_is_required')]
             }
             return;
         }
 
         if(!form.value.email) {
             errors.value = {
-                email: ['Email is required']
+                email: [t('settings.users_settings.email_is_required')]
             }
             return;
         }

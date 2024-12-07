@@ -1,7 +1,7 @@
 <template>
     <div>
         <div  v-if="!files_loading">
-            <h3>Select file:</h3>
+            <h3>{{ $t('corrector.selecting_file.title') }}</h3>
             <div  v-if="files.length > 0">
                 <div :class="['container_files']">
                 
@@ -16,12 +16,12 @@
                         <div class="file_date">{{ dateFormated(file.created_at) }}</div>
                     </div>
                 </div>
-                <button class="button_continue"><router-link to="/mapping-settings/invoice-template">Continue</router-link></button>
+                <button class="button_continue"><router-link to="/mapping-settings/invoice-template">{{ $t('continue') }}</router-link></button>
             </div>
             <div v-else class="container_not_found">
                 <img src="/not_found.webp" alt="not found">
                 <button class="button_back">
-                    <router-link to="/file-manager">Upload File</router-link>
+                    <router-link to="/file-manager">{{ $t('upload_file') }}</router-link>
                 </button>
             </div>
         </div>
@@ -38,6 +38,9 @@ import { ref, onBeforeMount, computed  } from 'vue'
 import Cookies from 'js-cookie';
 import LoadingTemplate from '@/components/LoadingTemplate.vue';
 import { useSelectedFileStore } from '@/stores/selectedFileStore';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const files = ref([]);
 const selectedFile = computed(() => selectedFileStore.selectedFile);
@@ -89,7 +92,7 @@ const fetchFiles = async (
         });
         const data = await response.json();
         if(!response.ok){
-            throw new Error(data.message || 'Failed to fetch files');
+            throw new Error(data.message || t('file_manager.failed_fetch_files'));
         }
         files_loading.value = false;
         return data.data.data;

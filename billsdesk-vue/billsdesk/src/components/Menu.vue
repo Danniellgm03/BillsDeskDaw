@@ -6,14 +6,16 @@
             </header>
             <nav>
                 <div class="menu_container">
-                    <p>Menu</p>
+                    <p>
+                        {{ $t('menu') }}
+                    </p>
                     <ul>
                     <li v-if="hasPermission(['manage_files'])">
                         <router-link
                         to="/file-manager"
                         :class="{ 'active-link': $route.path === '/file-manager' || $route.path === '/' }"
                         >
-                        <i class="pi pi-folder"></i> File manager
+                        <i class="pi pi-folder"></i> {{ $t('file_manager.title') }}
                         </router-link>
                     </li>
                     <li v-if="hasPermission( ['manage_invoices'] )">
@@ -21,7 +23,7 @@
                         to="/corrector"
                         :class="{ 'active-link': $route.path.includes('/corrector') }"
                         >
-                        <i class="pi pi-file-check"></i> Corrector
+                        <i class="pi pi-file-check"></i> {{ $t('corrector.title') }}
                         </router-link>
                     </li>
                     <li v-if="hasPermission(['manage_invoices'])">
@@ -29,20 +31,22 @@
                         to="/mapping-settings"
                         :class="{ 'active-link': $route.path.includes('/mapping-settings') }"
                         >
-                        <i class="pi pi-sitemap"></i> Mapping
+                        <i class="pi pi-sitemap"></i> {{ $t('mapping_settings.title_menu') }}
                         </router-link>
                     </li>
                 </ul>
 
                 <div class="menu_general_container">
-                    <p>General</p>
+                    <p>
+                        {{ $t('general.title') }}
+                    </p>
                     <ul>
                         <li v-if="hasPermission(['manage_users', 'manage_roles', 'meProfile', 'updateProfile', 'manage_companies', 'view_companies', 'manage_invitations', 'manage_contacts', 'view_contacts'])">
                         <router-link
                             to="/settings"
                             :class="{ 'active-link': $route.path.includes('/settings') }"
                         >
-                            <i class="pi pi-cog"></i> Settings
+                            <i class="pi pi-cog"></i> {{ $t('settings.title') }}
                         </router-link>
                         </li>
                     </ul>
@@ -74,6 +78,9 @@ import { useRouter } from 'vue-router';
 import Cookies from 'js-cookie'; 
 import { useNotificationService } from '@/utils/notificationService';
 const { notify } = useNotificationService();
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 
 const router = useRouter();
@@ -106,8 +113,8 @@ const logout = async () => {
         if (!response.ok) {
             notify({
                 severity: 'error',
-                summary: 'Error',
-                detail: 'Error to logout'
+                summary: t('error'),
+                detail: t('error_logout')
             });
         }
 
@@ -117,8 +124,8 @@ const logout = async () => {
     } catch (error) {
         notify({
             severity: 'error',
-            summary: 'Error',
-            detail: 'Error to logout'
+            summary: t('error'),
+            detail: t('error_logout')
         });
     }
   authStore.logout(); 

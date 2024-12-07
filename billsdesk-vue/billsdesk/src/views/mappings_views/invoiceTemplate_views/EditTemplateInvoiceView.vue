@@ -3,18 +3,18 @@
     <form @submit.prevent="saveTemplate">
       <!-- {{ templateData }} -->
       <div class="form-group">
-        <label for="template_name">Template Name</label>
+        <label for="template_name">{{ $t('corrector.template.template_name') }}</label>
         <InputText type="text" v-model="templateData.template_name" v-if="!loading" />
         <Skeleton v-else width="100%" height="30px" />
       </div>
 
       <!-- Column Mappings (simple key-value pairs) -->
       <div class="form-group mapping">
-        <label>Column Mappings</label>
+        <label>{{ $t('corrector.template.edit.columns_mapping') }}</label>
         <div v-if="!loading">
           <div v-for="(value, key, index) in templateData.column_mappings" :key="index" >
-            <label><small>Column key: {{ key }}</small></label>
-            <InputText type="text" v-model="templateData.column_mappings[key]" :placeholder="'Column ' + key" /> 
+            <label><small>{{ $t('corrector.template.edit.column_key') }}: {{ key }}</small></label>
+            <InputText type="text" v-model="templateData.column_mappings[key]" :placeholder="($t('corrector.template.edit.column')) + key" /> 
           </div>
         </div>
         <div class="loading_container" v-if="loading">
@@ -24,14 +24,14 @@
 
       <!-- Formulas -->
       <div class="form-group formulas">
-        <label>Formulas</label>
+        <label>{{ $t('corrector.template.edit.formulas') }}</label>
         <div v-if="!loading">
           <div v-for="(formula, index) in templateData.formulas" :key="index">
-            <InputText type="text" v-model="formula.new_column" placeholder="New Column" />
-            <InputText type="text" v-model="formula.formula" placeholder="Formula" />
-            <button type="button" @click="removeFormula(index)" class="buttonremove">Remove Formula</button>
+            <InputText type="text" v-model="formula.new_column" :placeholder="$t('corrector.template.edit.new_column')" />
+            <InputText type="text" v-model="formula.formula" :placeholder="$t('corrector.template.edit.formulas')" />
+            <button type="button" @click="removeFormula(index)" class="buttonremove">{{ $t('corrector.template.edit.remove_formula') }}</button>
           </div>
-          <button type="button" @click="addFormula" class="button_add">Add Formula</button>
+          <button type="button" @click="addFormula" class="button_add">{{ $t('corrector.template.edit.add_formula') }}</button>
         </div>
         <div class="loading_container" v-else>
           <LoadingTemplate />
@@ -40,12 +40,13 @@
 
       <!-- Validation Rules -->
       <div class="form-group">
-        <label>Validation Rules</label>
+        <label>{{ $t('corrector.template.edit.validation_rules') }}</label>
         <div v-if="!loading">
           <div v-for="(rule, index) in templateData.validation_rules" :key="index">
             <div>
               <InputText type="text" v-model="rule.field" placeholder="Field" />
-              <Select v-model="rule.operator" :options="opertators" optionLabel="label" optionValue="value" placeholder="Select an operator" style="
+              <Select v-model="rule.operator" :options="opertators" optionLabel="label" optionValue="value" 
+              :placeholder="$t('corrector.template.edit.select_operator')" style="
               width: 100%;
               margin: 5px;
               padding: 5px;
@@ -54,8 +55,8 @@
               <div class="color_picker" :style="{
                 borderColor: '#'+rule.highlight || '#000',
               }">
-                <label for="">Row Highlight</label>
-                <ColorPicker v-model="rule.highlight" placeholder="Highlight (Optional)" />
+                <label for="">{{ $t('corrector.template.edit.celd_highlight_color') }}</label>
+                <ColorPicker v-model="rule.highlight" :placeholder="$t('corrector.template.edit.highlight_optional')" />
                 <!-- remove color -->
                  <a @click="rule.highlight = ''" class="remove_color">
                   <i class="pi pi-times"></i>
@@ -64,21 +65,26 @@
               <div class="color_picker" :style="{
                 borderColor: '#'+rule.row_highlight || '#000',
               }">
-                <label for="">Row Highlight</label>
-                <ColorPicker v-model="rule.row_highlight" placeholder="Row Highlight (Optional)" />
+                <label for="">{{ $t('corrector.template.edit.row_highlight') }}</label>
+                <ColorPicker v-model="rule.row_highlight" :placeholder="$t('corrector.template.edit.row_highlight_optional')" />
                 <!-- remove color -->
                  <a @click="rule.row_highlight = ''" class="remove_color">
                   <i class="pi pi-times"></i>
                  </a>
               </div>
-              <button type="button" @click="removeValidationRule(index)" class="buttonremove">Remove Rule</button>
+              <button type="button" @click="removeValidationRule(index)" class="buttonremove">
+                {{ $t('corrector.template.edit.remove_validation_rule') }}
+              </button>
             </div>
             <!-- Conditions -->
             <div class="conditions_group">
-              <label>Conditions</label>
+              <label>
+                {{ $t('corrector.template.edit.conditions') }}
+              </label>
               <div v-for="(condition, idx) in rule.conditions" :key="idx" class="condition_inputs">
-                <InputText type="text" v-model="condition.field" placeholder="Condition Field" />
-                <Select v-model="condition.operator" :options="opertators" optionLabel="label" optionValue="value" placeholder="Select an operator" style="
+                <InputText type="text" v-model="condition.field" :placeholder="$t('corrector.template.edit.condition_field')" />
+                <Select v-model="condition.operator" :options="opertators" optionLabel="label" optionValue="value" 
+                :placeholder="$t('corrector.template.edit.select_operator')"  style="
                 width: 100%;
                 margin: 5px;
                 padding: 5px;
@@ -87,8 +93,8 @@
                 <div class="color_picker" :style="{
                   borderColor: '#'+condition.highlight || '#000',
                 }">
-                  <label for="">Celd Highlight Color </label>
-                  <ColorPicker v-model="condition.highlight" placeholder="Highlight Color" />
+                  <label for="">{{ $t('corrector.template.edit.celd_highlight_color') }}</label>
+                  <ColorPicker v-model="condition.highlight" :placeholder="$t('corrector.template.edit.highlight_optional')" />
                   <!-- remove color -->
                   <a @click="condition.highlight = ''" class="remove_color">
                     <i class="pi pi-times"></i>
@@ -98,19 +104,25 @@
                 <div class="color_picker" :style="{
                   borderColor: '#'+condition.row_highlight || '#000',
                 }">
-                  <label for="">Row Highlight Color </label>
-                  <ColorPicker v-model="condition.row_highlight" placeholder="Row Highlight Color" />
+                  <label for="">{{ $t('corrector.template.edit.row_highlight') }}</label>
+                  <ColorPicker v-model="condition.row_highlight" :placeholder="$t('corrector.template.edit.row_highlight_optional')" />
                   <!-- remove color -->
                   <a @click="condition.row_highlight = ''" class="remove_color">
                     <i class="pi pi-times"></i>
                   </a>
                 </div>
-                <button type="button" @click="removeCondition(rule, idx)" class="buttonremove">Remove Condition</button>
+                <button type="button" @click="removeCondition(rule, idx)" class="buttonremove">
+                  {{ $t('corrector.template.edit.remove_condition') }}
+                </button>
               </div>
-              <button type="button" @click="addCondition(rule)" class="button_add condition">Add Condition</button>
+              <button type="button" @click="addCondition(rule)" class="button_add condition">
+                {{ $t('corrector.template.edit.add_condition') }}
+              </button>
             </div>
           </div>
-          <button type="button" @click="addValidationRule" class="button_add">Add Validation Rule</button>
+          <button type="button" @click="addValidationRule" class="button_add">
+            {{ $t('corrector.template.edit.add_validation_rule') }}
+          </button>
         </div>
         <div class="loading_container" v-else>
           <LoadingTemplate />
@@ -120,23 +132,29 @@
 
       <!-- duplicate field into validation rules -->
       <div class="form-group duplicated_fields">
-        <label>Duplicated</label>
+        <label>
+          {{ $t('corrector.template.edit.duplicated') }}
+        </label>
         <div v-if="!loading">
           <div v-for="(duplicate, index) in duplicated_fields" :key="index" class="duplicated_field">
-            <InputText type="text" v-model="duplicate.duplicate_field" placeholder="Duplicate Field" />
+            <InputText type="text" v-model="duplicate.duplicate_field" :placeholder="$t('corrector.template.edit.duplicated')" />
             <div class="color_picker" :style="{
               borderColor: '#'+duplicate.row_highlight || '#000',
             }">
-              <label for="">Row Highlight</label>
-              <ColorPicker v-model="duplicate.row_highlight" placeholder="Row Highlight (Optional)" />
+              <label for="">{{ $t('corrector.template.edit.row_highlight') }}</label>
+              <ColorPicker v-model="duplicate.row_highlight"  :placeholder="$t('corrector.template.edit.row_highlight_optional')" />
               <!-- remove color -->
               <a @click="duplicate.row_highlight = ''" class="remove_color">
                 <i class="pi pi-times"></i>
               </a>
             </div>
-            <button type="button" @click="removeDuplicatedField(index)" class="buttonremove">Remove Duplicated Field</button>
+            <button type="button" @click="removeDuplicatedField(index)" class="buttonremove">
+              {{ $t('corrector.template.edit.remove_duplicated') }}
+            </button>
           </div>
-          <button type="button" @click="addDuplicatedField" class="button_add">Add Duplicated Field</button>
+          <button type="button" @click="addDuplicatedField" class="button_add">
+            {{ $t('corrector.template.edit.add_duplicated') }}
+          </button>
 
         </div>
         <div class="loading_container" v-else>
@@ -147,22 +165,32 @@
 
       <!-- Aggregations -->
       <div class="form-group aggregations">
-        <label>Aggregations</label>
+        <label>
+          {{ $t('corrector.template.edit.aggregation') }} 
+        </label>
         <div v-if="!loading">
           <div v-for="(aggregation, index) in templateData.aggregations" :key="index">
-            <InputText type="text" v-model="aggregation.type" placeholder="Aggregation Type" />
-            <InputText type="text" v-model="aggregation.fields" placeholder="Fields (comma-separated)" />
-            <button type="button" @click="removeAggregation(index)" class="buttonremove">Remove Aggregation</button>
+            <InputText type="text" v-model="aggregation.type" :placeholder="$t('corrector.template.edit.aggregation_field') " />
+            <InputText type="text" v-model="aggregation.fields" :placeholder="$t('corrector.template.edit.field_comma_separated')" />
+            <button type="button" @click="removeAggregation(index)" class="buttonremove">
+              {{ $t('corrector.template.edit.remove_aggregation') }}
+            </button>
           </div>
-          <button type="button" @click="addAggregation"  class="button_add">Add Aggregation</button>
+          <button type="button" @click="addAggregation"  class="button_add">
+            {{ $t('corrector.template.edit.add_aggregation') }}
+          </button>
         </div>
         <div class="loading_container" v-else>
           <LoadingTemplate />
         </div>
       </div>
 
-      <button type="submit" :disabled="loading">Save Template</button>
-      <button type="submit" @click.prevent="saveAndContinue()" style="margin-left: 10px;" :disabled="loading">Save and Finish</button>
+      <button type="submit" :disabled="loading">
+        {{ $t('corrector.template.edit.save_template') }}
+      </button>
+      <button type="submit" @click.prevent="saveAndContinue()" style="margin-left: 10px;" :disabled="loading">
+        {{ $t('corrector.template.edit.save_and_finish') }}
+      </button>
     </form>
   </div>
 </template>
@@ -178,18 +206,21 @@ import LoadingTemplate from '@/components/LoadingTemplate.vue';
 import { useNotificationService } from '@/utils/notificationService';
 import Select from 'primevue/select';
 import ColorPicker from 'primevue/colorpicker';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 
 const { notify } = useNotificationService();
 
 
 const opertators = [
-  { label: 'Equal', value: '==' },
-  { label: 'Not Equal', value: '!=' },
-  { label: 'Greater Than', value: '>' },
-  { label: 'Less Than', value: '<' },
-  { label: 'Greater Than or Equal', value: '>=' },
-  { label: 'Less Than or Equal', value: '<=' }
+  { label: t('equal'), value: '==' },
+  { label: t('not_equal'), value: '!=' },
+  { label: t('greater_than'), value: '>' },
+  { label: t('less_than'), value: '<' },
+  { label: t('greater_than_or_equal'), value: '>=' },
+  { label: t('less_than_or_equal'), value: '<=' }
 ]
 
 const loading = ref(false);
@@ -226,8 +257,8 @@ const fetchTemplateData = async () => {
     console.error('Error fetching template:', error);
     notify({
       severity: 'error', // 'success', 'info', 'warn', 'error'
-      summary: 'The operation could not be completed',
-      detail: 'An error occurred while fetching the template',
+      summary: t('operation_could_not_be_completed'),
+      detail: t('error_fetching_data'),
       life: 3000, // Tiempo de duración en ms
     });
   }
@@ -394,15 +425,15 @@ const saveTemplate = async () => {
     if (response.ok) {
       notify({
         severity: 'success', // 'success', 'info', 'warn', 'error'
-        summary: 'Template saved successfully!',
-        detail: 'The template has been saved successfully',
+        summary: t('success'),
+        detail: t('corrector.template.edit.template_saved'),
         life: 3000, // Tiempo de duración en ms
       });
     } else {
        notify({
         severity: 'error', // 'success', 'info', 'warn', 'error'
-        summary: 'The operation could not be completed',
-        detail: 'An error occurred while saving the template',
+        summary: t('error'),
+        detail: t('corrector.template.edit.failed_save_template'),
         life: 3000, // Tiempo de duración en ms
       });
     }
@@ -412,8 +443,8 @@ const saveTemplate = async () => {
     console.error('Error saving template:', error);
     notify({
       severity: 'error', // 'success', 'info', 'warn', 'error'
-      summary: 'The operation could not be completed',
-      detail: 'An error occurred while saving the template',
+      summary: t('error'),
+      detail: t('corrector.template.edit.failed_save_template'),
       life: 3000, // Tiempo de duración en ms
     });
   }

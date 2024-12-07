@@ -1,10 +1,10 @@
 <template>
   <div>
-    <h3>Mapping View</h3>
+    <h3>{{ $t('corrector.mapping.title') }}</h3>
     <div v-if="!loading">
          <div class="mapping_container">
             <div class="columns_file">
-                <h4>File columns</h4>
+                <h4>{{ $t('corrector.mapping.file_columns') }}</h4>
                 <div class="file_columns">
                     <div class="column" v-for="header in headersFile" :key="header">
                         <InputText disabled type="text" :value="header"></InputText>
@@ -13,7 +13,7 @@
             </div>
             <span class="pi pi-arrow-right-arrow-left"></span>
             <div class="columns_to_map">
-                <h4>Columns to map</h4>
+                <h4>{{ $t('corrector.mapping.columns_to_map') }}</h4>
                 <div class="file_columns">
                     <div class="column" v-for="(header) in headersFile" :key="header">
                         <InputText type="text" v-model="columnsToMap[header]" />
@@ -21,7 +21,7 @@
                 </div>
             </div>
         </div>
-        <button class="button_continue"><router-link to="/mapping-settings/invoice-template/new">Continue</router-link></button>
+        <button class="button_continue"><router-link to="/mapping-settings/invoice-template/new">{{ $t('continue') }}</router-link></button>
     </div>
     <div class="loading_container" v-else>
       <LoadingTemplate/>
@@ -37,6 +37,9 @@ import Cookies from 'js-cookie';
 import InputText from 'primevue/inputtext';
 import LoadingTemplate from '@/components/LoadingTemplate.vue';
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const router = useRouter();
 
@@ -81,7 +84,7 @@ const getFileHeaders = async () => {
     });
 
     if (!response.ok) {
-      throw new Error('Error fetching file headers');
+      throw new Error(t('corrector.mapping.error_fetch_file_headers'));
     }
 
     const data = await response.json();

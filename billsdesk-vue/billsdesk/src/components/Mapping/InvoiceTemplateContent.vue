@@ -1,8 +1,8 @@
 <template>
   <div class="template-card" @click="selectTemplate">
     <strong>{{ template.template_name }}</strong>
-    <p><strong>Created at:</strong> {{ formattedDate }}</p>
-    <button>Use Template</button>
+    <p><strong>{{ $t('created_at') }}:</strong> {{ formattedDate }}</p>
+    <button>{{ $t('use_template') }}</button>
   </div>
 </template>
 

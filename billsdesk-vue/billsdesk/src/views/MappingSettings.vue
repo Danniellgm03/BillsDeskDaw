@@ -1,6 +1,6 @@
 <template>
     <div>
-        <h2>Mapping Settings</h2>
+        <h2>{{ $t('mapping_settings.title') }}</h2>
         <section>
             <div class="left_side">
                 <MenuMapping />

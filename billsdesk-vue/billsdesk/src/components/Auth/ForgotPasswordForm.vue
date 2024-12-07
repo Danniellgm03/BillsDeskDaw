@@ -1,15 +1,21 @@
 <template>
      <AuthLayout :loading="loading">
          <template #left-content>
-            <h2>Forgot Password</h2>
-            <p>Enter your email to reset your password</p>
+            <h2>
+              {{ $t('auth.forgot_password') }}
+            </h2>
+            <p>
+              {{ $t('auth.forgot_password_desc') }}
+            </p>
 
             <div class="form-group">
-                <label for="email">Email</label>
-                <InputText id="email" v-model="email" type="email" placeholder="Enter your email" />
+                <label for="email">
+                  {{ $t('auth.email') }}
+                </label>
+                <InputText id="email" v-model="email" type="email" :placeholder="$t('auth.enter_email')" />
             </div>
 
-            <Button label="Reset Password" @click="handleResetPassword" />
+            <Button :label="$t('auth.reset_password')" @click="handleResetPassword" />
         </template>
      </AuthLayout>
 </template>
@@ -20,6 +26,9 @@ import { ref } from 'vue';
 import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const router = useRouter();
 
@@ -45,7 +54,7 @@ const handleResetPassword = async () => {
       console.error('Error resetting password:', errorData);
       router.push('/login');        
     } else {
-      alert('Password reset email sent');
+      alert(t('auth.password_reset_email_sent'));
       router.push('/login');
     }
   } catch (error) {

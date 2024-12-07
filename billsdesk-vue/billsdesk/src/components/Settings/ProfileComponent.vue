@@ -6,8 +6,12 @@
         <SettingsLayout>
             <template #info>
                 <div class="info_container">
-                    <h4>Name</h4>
-                    <p>Changes your name in the system</p>
+                    <h4>
+                        {{ $t('settings.profile_settings.name') }}
+                    </h4>
+                    <p>
+                        {{ $t('settings.profile_settings.name_desc') }}
+                    </p>
                 </div>
             </template>
             <template #main>
@@ -22,8 +26,12 @@
         <SettingsLayout>
             <template #info>
                 <div class="info_container">
-                    <h4>Email</h4>
-                    <p>Changes your email in the system</p>
+                    <h4>
+                        {{ $t('settings.profile_settings.email') }}
+                    </h4>
+                    <p>
+                        {{ $t('settings.profile_settings.email_desc') }}
+                    </p>
                 </div>
             </template>
             <template #main>
@@ -38,14 +46,18 @@
         <SettingsLayout>
             <template #info>
                 <div class="info_container">
-                    <h4>Password</h4>
-                    <p>Changes your password in the system</p>
+                    <h4>
+                        {{ $t('settings.profile_settings.password') }}
+                    </h4>
+                    <p>
+                        {{ $t('settings.profile_settings.password_desc') }}
+                    </p>
                 </div>
             </template>
             <template #main>
                 <div  v-if="!loading">
-                    <InputText v-model="password" placeholder="Password"   />
-                    <InputText v-model="confirmPassword" placeholder="Confirm Password" style="margin-left: 10px"   />
+                    <InputText v-model="password" :placeholder="$t('settings.profile_settings.password')"   />
+                    <InputText v-model="confirmPassword" :placeholder="$t('settings.profile_settings.confirm_password')" style="margin-left: 10px"   />
                 </div>
                 <div v-if="loading" style="display: flex;gap: 10px;align-items:center">
                     <Skeleton width="20%" height="40px" />
@@ -59,8 +71,12 @@
         <SettingsLayout>
             <template #info>
                 <div class="info_container">
-                    <h4>Phone</h4>
-                    <p>Changes your phone in the system</p>
+                    <h4>
+                        {{ $t('settings.profile_settings.phone') }}
+                    </h4>
+                    <p>
+                        {{ $t('settings.profile_settings.phone_desc') }}
+                    </p>
                 </div>
             </template>
             <template #main>
@@ -76,8 +92,12 @@
         <SettingsLayout>
             <template #info>
                 <div class="info_container">
-                    <h4>Address</h4>
-                    <p>Changes your address in the system</p>
+                    <h4>
+                        {{ $t('settings.profile_settings.address') }}
+                    </h4>
+                    <p>
+                        {{ $t('settings.profile_settings.address_desc') }}
+                    </p>
                 </div>
             </template>
             <template #main>
@@ -93,8 +113,12 @@
         <SettingsLayout>
             <template #info>
                 <div class="info_container">
-                    <h4>Company</h4>
-                    <p>Your company name</p>
+                    <h4>
+                        {{ $t('settings.profile_settings.company') }}
+                    </h4>
+                    <p>
+                        {{ $t('settings.profile_settings.company_desc') }}
+                    </p>
                 </div>
             </template>
             <template #main>
@@ -112,8 +136,12 @@
         <SettingsLayout>
             <template #info>
                 <div class="info_container">
-                    <h4>Role</h4>
-                    <p>Your role in the company</p>
+                    <h4>
+                        {{ $t('settings.profile_settings.role') }}
+                    </h4>
+                    <p>
+                        {{ $t('settings.profile_settings.role_desc') }}
+                    </p>
                 </div>
             </template>
             <template #main>
@@ -126,7 +154,9 @@
             </template>
         </SettingsLayout>
 
-        <button class="save_user" @click="saveUser" :disabled="loading">Save</button>
+        <button class="save_user" @click="saveUser" :disabled="loading">
+            {{ $t('save') }}
+        </button>
     </div>
 </template>
 
@@ -137,6 +167,9 @@ import InputText from 'primevue/inputtext';
 import Cookies from 'js-cookie';
 import Skeleton from 'primevue/skeleton';
 import ErrorsComponent from '../ErrorsComponent.vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const errors = ref([]);
 
@@ -194,7 +227,7 @@ const saveUser = async () => {
 
     loading.value = true;
     if(password.value !== confirmPassword.value) {
-        alert('Passwords do not match');
+        alert(t('settings.profile_settings.password_mismatch'));
         loading.value = false;
         return;
     }
