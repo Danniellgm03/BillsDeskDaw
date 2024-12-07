@@ -31,6 +31,18 @@ defineProps({
     height: 100vh;
     background-color: #ffffff;
 
+    @media (max-width: 991px) {
+
+        .right_container {
+            display: none !important;
+        }
+
+        .left_container {
+            width: 100% !important;
+            padding: 50px !important;
+        }
+    }
+
     .left_container {
         width: 50%;
         height: 100%;
