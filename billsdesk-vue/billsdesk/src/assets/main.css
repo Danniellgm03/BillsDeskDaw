@@ -46,6 +46,10 @@ body{
 
 .p-drawer{
     width: 30% !important;
+
+    @media (max-width: 1300px){
+        width: 100% !important;
+    }
    
 
     header{

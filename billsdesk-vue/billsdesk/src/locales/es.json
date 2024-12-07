@@ -280,5 +280,6 @@
         "register_invitation_desc": "Has sido invitado a unirte a nuestra plataforma. Por favor, completa el formulario para crear tu cuenta."
     },
     "password_mismatch": "Las contraseñas no coinciden",
-    "email_mismatch": "Los correos electrónicos no coinciden"
+    "email_mismatch": "Los correos electrónicos no coinciden",
+    "logout": "Cerrar Sesión"
 }

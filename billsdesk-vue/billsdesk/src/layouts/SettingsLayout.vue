@@ -21,8 +21,16 @@
         display: flex;
         gap: 20px;
 
+        @media (max-width: 1050px) {
+            flex-direction: column;
+        }
+
         .info_container_setting{
             width: 45%;
+
+            @media (max-width: 1050px) {
+                width: 100%;
+            }
 
             h4{
                 margin-bottom: 10px;
@@ -32,6 +40,11 @@
 
         .main_container{
             width: 55%;
+
+            @media (max-width: 1050px) {
+                width: 100%;
+            }
+
         }
     }
 </style>

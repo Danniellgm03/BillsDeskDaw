@@ -3,14 +3,17 @@
         <div class="main_menu">
             <header>
                 <h1>BillsDesk</h1>
+                <div class="close_menu"  @click="open_menu">
+                    <i class="pi pi-times"></i>
+                </div>
             </header>
             <nav>
                 <div class="menu_container">
-                    <p>
+                    <!-- <p>
                         {{ $t('menu') }}
-                    </p>
+                    </p> -->
                     <ul>
-                    <li v-if="hasPermission(['manage_files'])">
+                    <li v-if="hasPermission(['manage_files'])"  @click="open_menu">
                         <router-link
                         to="/file-manager"
                         :class="{ 'active-link': $route.path === '/file-manager' || $route.path === '/' }"
@@ -18,7 +21,7 @@
                         <i class="pi pi-folder"></i> {{ $t('file_manager.title') }}
                         </router-link>
                     </li>
-                    <li v-if="hasPermission( ['manage_invoices'] )">
+                    <li v-if="hasPermission( ['manage_invoices'] )"  @click="open_menu">
                         <router-link
                         to="/corrector"
                         :class="{ 'active-link': $route.path.includes('/corrector') }"
@@ -26,7 +29,7 @@
                         <i class="pi pi-file-check"></i> {{ $t('corrector.title') }}
                         </router-link>
                     </li>
-                    <li v-if="hasPermission(['manage_invoices'])">
+                    <li v-if="hasPermission(['manage_invoices'])" @click="open_menu">
                         <router-link
                         to="/mapping-settings"
                         :class="{ 'active-link': $route.path.includes('/mapping-settings') }"
@@ -35,13 +38,13 @@
                         </router-link>
                     </li>
                 </ul>
-
+                <div class="divider"></div>
                 <div class="menu_general_container">
-                    <p>
+                    <!-- <p>
                         {{ $t('general.title') }}
-                    </p>
+                    </p> -->
                     <ul>
-                        <li v-if="hasPermission(['manage_users', 'manage_roles', 'meProfile', 'updateProfile', 'manage_companies', 'view_companies', 'manage_invitations', 'manage_contacts', 'view_contacts'])">
+                        <li v-if="hasPermission(['manage_users', 'manage_roles', 'meProfile', 'updateProfile', 'manage_companies', 'view_companies', 'manage_invitations', 'manage_contacts', 'view_contacts'])" @click="open_menu">
                         <router-link
                             to="/settings"
                             :class="{ 'active-link': $route.path.includes('/settings') }"
@@ -54,6 +57,9 @@
             </div>
 
             </nav>
+            <button @click="logout" class="btn logout">
+                <i class="pi pi-sign-out"></i> {{ $t('logout') }}
+            </button>
             <footer>
                 <Avatar :label="user_data?.name[0] ?? 'A'" class="mr-2" shape="circle" />
                 <div>
@@ -61,10 +67,10 @@
                     <p class="email_user">{{ user_data?.email ?? ''}}</p>
                 </div>
             </footer>
-            <button @click="logout" class="btn btn-danger">
-                <i class="pi pi-power-off"></i>
-            </button>
 
+            <div class="open_mobile" @click="open_menu">
+                <i class="pi pi-angle-right"></i>
+            </div>
         </div>
     </div>
 </template>
@@ -79,11 +85,17 @@ import Cookies from 'js-cookie';
 import { useNotificationService } from '@/utils/notificationService';
 const { notify } = useNotificationService();
 import { useI18n } from 'vue-i18n';
+import { defineEmits } from 'vue';
 
 const { t } = useI18n();
-
-
 const router = useRouter();
+const emit = defineEmits(['open_menu']);
+
+const open_menu = () => {
+    emit('open_menu');
+};
+
+
 
 const authStore = useAuthStore(); // Accede al store de autenticación
 const user_data = JSON.parse(localStorage.getItem('user_data'));
@@ -137,27 +149,56 @@ const logout = async () => {
 
 <style scoped lang='scss'>
 
-.btn.btn-danger{
-    background-color: #ff292c;
-    border-color: #ff292c;
-    color: white;
+header{
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    justify-content: center;
-    gap: 5px;
-    padding: 5px 10px;
-    border-radius: 5px;
-    transition: background-color .15s;
-    cursor: pointer;
+    margin-bottom: 20px;
 
-    &:hover{
-        background-color: #ff7875;
-        border-color: #ff7875;
+
+    .close_menu{
+        @media screen and (min-width: 768px){
+            display: none;
+        }
+        color: white;
+        background-color: #2c2c2c;
+        padding: 10px;
+        border-radius: 5px;
+        transition: background-color .15s;
+
+        &:hover{
+            cursor: pointer;
+            background-color: #454545;
+        }
     }
 }
 
+.logout{
+    color: rgb(195, 195, 195);
+    background-color: transparent;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    margin-top: 20px;
+    transition: background-color .15s;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    
+
+    &:hover{
+        cursor: pointer;
+        background-color: #454545;
+        color: red;
+    }
+
+    margin-bottom: 10px;
+
+}
+
 .main_menu {
-    background-color: #000016;
+    background-color: #2c2c2c;
     color: white;
     height: 100dvh;
     width: 100%;
@@ -165,6 +206,7 @@ const logout = async () => {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    position: relative;
 
     @media screen and (max-width: 768px){
         width: 100%;
@@ -188,7 +230,6 @@ const logout = async () => {
             margin: 20px 0 0 0;
             display: flex;
             flex-direction: column;
-            gap: 10px;
 
             li{
                 margin-bottom: 10px;
@@ -201,28 +242,34 @@ const logout = async () => {
                     align-items: center;
                     gap: 7px;
                     position: relative;
+                    padding: 10px;
+                    border-radius: 3px;
 
                     &:hover{
                         color: white;
+                        background-color: #393939;
                     }
 
 
                     &.active-link{
                         color: white;
+                        background-color: #454545;
+                        padding: 10px;
+                        border-radius: 3px;
 
                         i{
-                            color: #5aaaff;
+                            color: #3f9cff;
                         }
 
-                        &::before{
-                            content: "";
-                            width: 3px;
-                            height: 150%;
-                            background-color: #5aaaff;
-                            position: absolute;
-                            left: -20px;
-                            border-radius: 0px 10px 10px 0 ;
-                        }
+                        // &::before{
+                        //     content: "";
+                        //     width: 3px;
+                        //     height: 150%;
+                        //     background-color: #3f9cff;
+                        //     position: absolute;
+                        //     left: -20px;
+                        //     border-radius: 0px 10px 10px 0 ;
+                        // }
                     }
                 }
             }
@@ -234,7 +281,7 @@ const logout = async () => {
         align-items: center;
         gap: 10px;
         position: relative;
-        padding: 10px 5px;
+        padding: 10px 11px;
         border-radius: 10px;
         transition: background-color .15s;
 
@@ -244,26 +291,54 @@ const logout = async () => {
         }
         
 
-        &::before{
-            content: "";
-            width: 100%;
-            height: 1px;
-            background-color: #ffffff2b;
-            position: absolute;
-            top: -10px;
-        }
+        // &::before{
+        //     content: "";
+        //     width: 100%;
+        //     height: 1px;
+        //     background-color: #ffffff2b;
+        //     position: absolute;
+        //     top: -10px;
+        // }
 
         .name_user{
             font-weight: 500;
+            font-size: .8em;
         }
 
         .email_user{
-            font-size: .9em;
+            font-size: .7em;
             font-weight: 400;
             color: #b9b9b9;
         }
 
         
+    }
+}
+
+.divider{
+    width: 100%;
+    height: 1px;
+    background-color: #ffffff2b;
+    margin: 20px 0;
+    border-bottom: #454545;
+}
+
+.open_mobile{
+    position: absolute;
+    width: 32px;
+    height: 60px;
+    background-color: #2c2c2c;
+    right: -31px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+
+    @media  (min-width: 768px){
+        display: none;
     }
 }
 

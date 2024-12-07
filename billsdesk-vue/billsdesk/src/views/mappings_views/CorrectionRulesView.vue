@@ -4,7 +4,9 @@
     
     <div v-if="!loading">
       <ErrorsComponent :errors="errors" v-if="errors != null"/>
-      <p><strong>
+      <p style="
+      margin: 10px 0;
+      "><strong>
           {{ invoiceTemplate?.template_name }}
       </strong></p>
   

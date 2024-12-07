@@ -3,7 +3,7 @@
         <ErrorsComponent :errors="errors" v-if="errors != ''" />
 
         <!-- Name -->
-        <SettingsLayout>
+        <SettingsLayout class="setting_layout">
             <template #info>
                 <div class="info_container">
                     <h4>
@@ -23,7 +23,7 @@
         </SettingsLayout>
         <div class="divider"></div>
         <!-- Email -->
-        <SettingsLayout>
+        <SettingsLayout class="setting_layout">
             <template #info>
                 <div class="info_container">
                     <h4>
@@ -43,7 +43,7 @@
         </SettingsLayout>
         <div class="divider"></div>
         <!-- Password -->
-        <SettingsLayout>
+        <SettingsLayout class="setting_layout">
             <template #info>
                 <div class="info_container">
                     <h4>
@@ -68,7 +68,7 @@
         </SettingsLayout>
         <div class="divider"></div>
         <!-- Phone -->
-        <SettingsLayout>
+        <SettingsLayout class="setting_layout">
             <template #info>
                 <div class="info_container">
                     <h4>
@@ -89,7 +89,7 @@
         <div class="divider"></div>
 
         <!-- Address -->
-        <SettingsLayout>
+        <SettingsLayout class="setting_layout">
             <template #info>
                 <div class="info_container">
                     <h4>
@@ -110,7 +110,7 @@
         <div class="divider"></div>
 
         <!-- Company -->
-        <SettingsLayout>
+        <SettingsLayout class="setting_layout">
             <template #info>
                 <div class="info_container">
                     <h4>
@@ -133,7 +133,7 @@
         <div class="divider"></div>
 
         <!-- Role -->
-        <SettingsLayout>
+        <SettingsLayout class="setting_layout">
             <template #info>
                 <div class="info_container">
                     <h4>
@@ -290,5 +290,10 @@ const saveUser = async () => {
             background-color: #d5d5d5;
             cursor: not-allowed;
         }
+    }
+
+    .setting_layout{
+        display: flex;
+        flex-direction: column;
     }
 </style>

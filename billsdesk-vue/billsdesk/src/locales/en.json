@@ -280,5 +280,6 @@
         "register_invitation_desc": "You have been invited to join our platform. Please fill out the form below to create your account."
     },
     "password_mismatch": "Passwords do not match",
-    "email_mismatch": "Emails do not match"
+    "email_mismatch": "Emails do not match",
+    "logout": "Log out"
 }

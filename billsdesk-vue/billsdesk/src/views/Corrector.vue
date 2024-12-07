@@ -38,7 +38,7 @@
 
         </section>
 
-        <Drawer v-model:visible="isDrawerOpen" style="width: 50% !important;"  position="right" class="p-drawer_styled" :visible="isDrawerOpen" :modal="true" :showHeader="false" :baseZIndex="10000" @onHide="isDrawerOpen = false">
+        <Drawer v-model:visible="isDrawerOpen" style="width: 50%;"  position="right" class="p-drawer_styled" :visible="isDrawerOpen" :modal="true" :showHeader="false" :baseZIndex="10000" @onHide="isDrawerOpen = false">
              <template #header>
                 <header>
                     <i class="pi pi-file"></i> {{ $t('corrector.drawer_title') }}

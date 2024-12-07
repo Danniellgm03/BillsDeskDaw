@@ -280,5 +280,6 @@
         "register_invitation_desc": "您被邀请加入我们的平台。请填写表单以创建您的帐户。"
     },
     "password_mismatch": "密码不匹配",
-    "email_mismatch": "电子邮件不匹配"
+    "email_mismatch": "电子邮件不匹配",
+    "logout": "注销"
 }

@@ -24,10 +24,19 @@
         justify-content: space-between;
         margin-top: 20px;
         gap: 20px;
+
+        @media (max-width: 1050px) {
+            flex-direction: column;
+        }
     }
 
     .left_side {
         width: 20%;
+
+        @media (max-width: 1050px) {
+            width: 100%;
+        }
+
     }
 
     .right_side {
@@ -36,6 +45,10 @@
         box-shadow: 0 0 30px -10px rgba(0, 0, 0, 0.1);
         border-radius: 5px;
         padding: 20px;
+
+        @media (max-width: 1050px) {
+            width: 100%;
+        }
     }
 
 

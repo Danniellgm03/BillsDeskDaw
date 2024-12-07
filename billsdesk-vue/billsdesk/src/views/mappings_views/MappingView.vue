@@ -103,6 +103,10 @@ const getFileHeaders = async () => {
     margin-top: 20px;
     gap: 20px;
 
+    @media (max-width: 768px) {
+       gap: 0;
+    }
+
     .columns_file, .columns_to_map {
         width: 45%;
         border-radius: 5px;
@@ -111,6 +115,14 @@ const getFileHeaders = async () => {
         flex-direction: column;
         justify-content: center;
         align-items: center;
+
+        @media (max-width: 768px) {
+          .p-inputtext {
+            width: 100%;
+          }
+
+          padding: 5px;
+        }
 
         h4 {
             margin-bottom: 10px;
