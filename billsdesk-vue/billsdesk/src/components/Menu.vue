@@ -57,6 +57,9 @@
                     <p class="email_user">{{ user_data?.email ?? ''}}</p>
                 </div>
             </footer>
+            <button @click="logout" class="btn btn-danger">
+                <i class="pi pi-power-off"></i>
+            </button>
 
         </div>
     </div>
@@ -67,6 +70,13 @@
 import Avatar from 'primevue/avatar';
 import { ref } from 'vue';
 import { useAuthStore } from '@/stores/authStore'; // Importa el store
+import { useRouter } from 'vue-router';
+import Cookies from 'js-cookie'; 
+import { useNotificationService } from '@/utils/notificationService';
+const { notify } = useNotificationService();
+
+
+const router = useRouter();
 
 const authStore = useAuthStore(); // Accede al store de autenticación
 const user_data = JSON.parse(localStorage.getItem('user_data'));
@@ -82,9 +92,62 @@ const hasPermission = (requiredPermissions) => {
   return requiredPermissions.some((perm) => authStore.permissions.includes(perm));
 };
 
+
+const logout = async () => {
+    try {
+        const response = await fetch('http://localhost:8000/api/logout', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': Cookies.get('authToken') ?? ''
+            }
+        });
+
+        if (!response.ok) {
+            notify({
+                severity: 'error',
+                summary: 'Error',
+                detail: 'Error to logout'
+            });
+        }
+
+        authStore.logout();
+        router.push('/login'); 
+
+    } catch (error) {
+        notify({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Error to logout'
+        });
+    }
+  authStore.logout(); 
+  router.push('/login'); // Redirige a la página de login
+};
+
+
 </script>
 
 <style scoped lang='scss'>
+
+.btn.btn-danger{
+    background-color: #ff292c;
+    border-color: #ff292c;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 5px 10px;
+    border-radius: 5px;
+    transition: background-color .15s;
+    cursor: pointer;
+
+    &:hover{
+        background-color: #ff7875;
+        border-color: #ff7875;
+    }
+}
 
 .main_menu {
     background-color: #000016;
