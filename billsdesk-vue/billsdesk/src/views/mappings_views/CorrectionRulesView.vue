@@ -24,7 +24,7 @@
           <label for="conditions">Conditions</label>
           <div v-for="(condition, index) in ruleData.conditions" :key="index" class="condition">
             <InputText v-model="condition.field" placeholder="Field" />
-            <InputText v-model="condition.operator" placeholder="Operator" />
+            <Select v-model="condition.operator" :options="opertators" optionLabel="label" optionValue="value" placeholder="Select an Operator" />
             <InputText v-model="condition.value" placeholder="Value" />
             <button type="button" @click="removeCondition(index)" class="buttonremove">Remove Condition</button>
           </div>
@@ -118,6 +118,16 @@ import { useRouter } from 'vue-router';
 import LoadingTemplate from '@/components/LoadingTemplate.vue';
 import { useNotificationService } from '@/utils/notificationService';
 import ErrorsComponent from '@/components/ErrorsComponent.vue';
+import Select from 'primevue/select';
+
+const opertators = [
+  { label: 'Equal', value: '==' },
+  { label: 'Not Equal', value: '!=' },
+  { label: 'Greater Than', value: '>' },
+  { label: 'Less Than', value: '<' },
+  { label: 'Greater Than or Equal', value: '>=' },
+  { label: 'Less Than or Equal', value: '<=' }
+]
 
 const errors = ref(null);
 
@@ -231,6 +241,9 @@ const saveCorrectionRule = async () => {
       summary: 'Error',
       detail: 'Error saving correction rule',
     });
+  } finally {
+    loading.value = false;
+    errors.value = null;
   }
 };
 
