@@ -20,6 +20,21 @@ body{
 
 :root{
     --p-tabs-active-bar-background: #000 !important;
+    --p-button-primary-background : #0b00d4 !important;
+    --p-button-primary-border-color : #0b00d4 !important;
+    --p-button-primary-hover-background : #0900aa !important;
+    --p-button-primary-hover-border-color : #0900aa !important;
+    --p-textarea-focus-border-color : #000 !important;
+    --p-paginator-nav-button-selected-background : #c3caff !important;
+    --p-paginator-nav-button-selected-color: #0900aa !important;
+    --p-select-focus-border-color: #000 !important;
+    --p-select-option-selected-focus-background: #c3caff !important;
+    --p-select-option-selected-focus-color: #0900aa !important;
+    --p-inputtext-focus-border-color: #000 !important;
+    --p-select-option-selected-focus-background: #c3caff !important;
+    --p-select-option-selected-focus-color: #0900aa !important;
+    --p-select-option-selected-background: #c3caff !important;
+    --p-select-option-selected-color: #0900aa !important;
 }
 
 .container_not_found {
