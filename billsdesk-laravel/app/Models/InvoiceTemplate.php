@@ -4,9 +4,13 @@ namespace App\Models;
 
 use MongoDB\Laravel\Eloquent\Model;
 use App\Models\CorrectionRule;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class InvoiceTemplate extends Model
 {
+
+    use HasFactory;
+
     protected $collection = 'invoice_templates';
     protected $connection = 'mongodb';
 

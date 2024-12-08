@@ -54,4 +54,9 @@ class ForgotPasswordNotification extends Notification
             'token' => $this->token,
         ];
     }
+
+    public function getToken()
+    {
+        return $this->token;
+    }
 }

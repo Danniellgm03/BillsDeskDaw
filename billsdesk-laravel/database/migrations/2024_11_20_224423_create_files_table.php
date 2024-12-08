@@ -25,7 +25,10 @@ return new class extends Migration
             $table->string('file_status')->default('active');
             $table->foreignId('created_by')->constrained('users')->onDelete('cascade');
             $table->foreignId('updated_by')->constrained('users')->onDelete('cascade');
-            $table->foreignId('deleted_by')->nullable()->constrained('users')->onDelete('cascade');
+           $table->foreignId('deleted_by')
+            ->nullable()
+            ->constrained('users')
+            ->nullOnDelete();
             $table->softDeletes();
             $table->boolean('is_fav')->default(false);
             $table->timestamps();
