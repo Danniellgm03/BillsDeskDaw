@@ -28,19 +28,23 @@ class InvoiceImport implements ToCollection, WithHeadingRow
         $mappedRowResult = [];
         foreach ($rows as $row) {
             // Mapear columnas
-            $mappedRow = $this->mapColumns($row);
+            try{
+                $mappedRow = $this->mapColumns($row);
+            } catch(\Exception $e){
+                throw new \Exception('Error mapping columns: ' . $e->getMessage());
+            }
 
             // Primero, marcar las filas duplicadas (separado de la validación)
             $mappedRow = $this->markDuplicateRows($mappedRow);
 
-            // Crear nuevas columnas basadas en fórmulas
-            $mappedRow = $this->applyFormulas($mappedRow);
-
-            // Validar y destacar filas según validation_rules
-            $mappedRow = $this->applyValidationRules($mappedRow);
-
             // Aplicar correcciones (correction_rules)
             $correctedRow = $this->applyCorrections($mappedRow);
+
+            // Crear nuevas columnas basadas en fórmulas
+            $correctedRow = $this->applyFormulas($correctedRow);
+
+            // Validar y destacar filas según validation_rules
+            $correctedRow = $this->applyValidationRules($correctedRow);
 
             // Actualizar agregaciones
             $this->updateAggregations($correctedRow);
@@ -49,7 +53,6 @@ class InvoiceImport implements ToCollection, WithHeadingRow
             $this->processedData[] = $correctedRow;
         }
     }
-
     // Detectar filas duplicadas según un campo especificado en validation_rules
     private function markDuplicateRows($row)
     {
@@ -79,8 +82,14 @@ class InvoiceImport implements ToCollection, WithHeadingRow
     private function mapColumns($row)
     {
         $mappedRow = [];
+
+        if(empty($this->template['column_mappings'])){
+            throw new \Exception('Column mappings not defined');
+        }
+
         foreach ($this->template['column_mappings'] as $csvColumn => $internalField) {
-            $mappedRow[$internalField] = $row[$csvColumn] ?? null;
+            $key = !empty($internalField) ? $internalField : $csvColumn;
+            $mappedRow[$key] = $row[$csvColumn] ?? null;
         }
         return $mappedRow;
     }
@@ -97,19 +106,31 @@ class InvoiceImport implements ToCollection, WithHeadingRow
 
             // Reemplazar campos en la fórmula con sus valores en la fila
             foreach ($row as $field => $value) {
-                $expression = str_replace($field, $value, $expression);
+                if (strpos($expression, $field) === false) {
+                    continue;
+                }
+
+                $expression = preg_replace('/\b' . preg_quote($field, '/') . '\b/', $value, $expression);
+            }
+
+            // Comprobar que la expresión solo contiene caracteres válidos para cálculos matemáticos
+            if (!preg_match('#^[0-9+\-*/().\s]+$#', $expression)) {
+                $row[$newColumn] = null; // Si no es válida, asignar null
+                continue;
             }
 
             // Evaluar la fórmula
             try {
                 $row[$newColumn] = eval("return $expression;");
             } catch (\Throwable $e) {
-                $row[$newColumn] = null; // Si hay un error, la columna será null
+                $row[$newColumn] = null; // Si hay un error, asignar null
             }
         }
 
         return $row;
     }
+
+
 
     private function applyValidationRules($row)
     {
@@ -213,7 +234,18 @@ class InvoiceImport implements ToCollection, WithHeadingRow
             // Calcula el nuevo valor para la nueva columna, si se especifica
             if ($newColumn) {
                 // Calculamos el valor que debe tener la nueva columna
-                $row[$newColumn] = $this->resolveValue($value, $row[$field]);
+                switch ($action) {
+                    case 'add':
+                        $row[$newColumn] = $row[$field] + $this->resolveValue($value, $row[$field]);
+                        break;
+                    case 'subtract':
+                        $row[$newColumn] = $row[$field] - $this->resolveValue($value, $row[$field]);
+                        break;
+                    case 'update':
+                        $row[$newColumn] = $this->resolveValue($value, $row[$field]);
+                        break;
+                }
+                continue;
             }
 
             // Aplica la corrección al campo original
