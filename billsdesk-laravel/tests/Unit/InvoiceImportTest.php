@@ -2422,4 +2422,1242 @@ class InvoiceImportTest extends TestCase
             ], $processedData[0]);
     }
 
+    public function testAggregationsWorkCorrectly(){
+
+        $rows = new Collection([
+            [
+                'ship id' => 'A001',
+                'peso' => 5,
+                'peso 2' => 5,
+                'altura' => 50,
+                'ancho' => 30,
+                'largo' => 20,
+                'coste' => 200,
+                'coste extra' => 50,
+                'cliente' => 'Cliente 1',
+                'direccion' => 'Calle 123',
+                'codigo postal' => '28001',
+                'pais' => 'ES',
+                'devuelto' => 'No',
+            ],
+            [
+                'ship id' => 'A004',
+                'peso' => 70,
+                'peso 2' => 10,
+                'altura' => 60,
+                'ancho' => 40,
+                'largo' => 25,
+                'coste' => 300,
+                'coste extra' => 70,
+                'cliente' => 'Cliente 2',
+                'direccion' => 'Calle 456',
+                'codigo postal' => '28002',
+                'pais' => 'US',
+                'devuelto' => 'No',
+            ],
+        ]);
+
+        $template = [
+            'column_mappings' => [
+                'ship id' => 'ship_id',
+                'peso' => 'weight',
+                'peso 2' => 'weight_2',
+                'altura' => 'height',
+                'ancho' => 'width',
+                'largo' => 'length',
+                'coste' => 'cost',
+                'coste extra' => 'extra_cost',
+                'cliente' => 'client',
+                'direccion' => 'address',
+                'codigo postal' => 'postal_code',
+                'pais' => 'country',
+                'devuelto' => 'returned',
+            ],
+            "aggregations" => [
+                [
+                    "type" => "sum",
+                    "fields" => ["cost", "extra_cost"],
+                ]
+            ],
+            "validation_rules" => [
+            ],
+        ];
+
+        $import = new InvoiceImport($template, []);
+
+        $import->collection($rows);
+
+        $processedData = $import->processedData;
+
+
+        $this->assertCount(3, $processedData);
+
+
+        $this->assertEquals([
+            'ship_id' => 'A001',
+            'weight' => 5,
+            'weight_2' => 5,
+            'height' => 50,
+            'width' => 30,
+            'length' => 20,
+            'cost' => 200,
+            'extra_cost' => 50,
+            'client' => 'Cliente 1',
+            'address' => 'Calle 123',
+            'postal_code' => '28001',
+            'country' => 'ES',
+            'returned' => 'No',
+        ], $processedData[0]);
+
+
+        $this->assertEquals([
+            'ship_id' => 'A004',
+            'weight' => 70,
+            'weight_2' => 10,
+            'height' => 60,
+            'width' => 40,
+            'length' => 25,
+            'cost' => 300,
+            'extra_cost' => 70,
+            'client' => 'Cliente 2',
+            'address' => 'Calle 456',
+            'postal_code' => '28002',
+            'country' => 'US',
+            'returned' => 'No',
+        ], $processedData[1]);
+
+
+
+        $this->assertEquals([
+            'ship_id' => null,
+            'weight' => null,
+            'weight_2' => null,
+            'height' => null,
+            'width' => null,
+            'length' => null,
+            'cost' => 500,
+            'extra_cost' => 120,
+            'client' => null,
+            'address' => null,
+            'postal_code' => null,
+            'country' => null,
+            'returned' => null,
+        ], $processedData[2]);
+    }
+
+
+    public function testAggregationsWorkCorrectlyAverage(){
+
+        $rows = new Collection([
+            [
+                'ship id' => 'A001',
+                'peso' => 5,
+                'peso 2' => 5,
+                'altura' => 50,
+                'ancho' => 30,
+                'largo' => 20,
+                'coste' => 200,
+                'coste extra' => 50,
+                'cliente' => 'Cliente 1',
+                'direccion' => 'Calle 123',
+                'codigo postal' => '28001',
+                'pais' => 'ES',
+                'devuelto' => 'No',
+            ],
+            [
+                'ship id' => 'A004',
+                'peso' => 70,
+                'peso 2' => 10,
+                'altura' => 60,
+                'ancho' => 40,
+                'largo' => 25,
+                'coste' => 300,
+                'coste extra' => 70,
+                'cliente' => 'Cliente 2',
+                'direccion' => 'Calle 456',
+                'codigo postal' => '28002',
+                'pais' => 'US',
+                'devuelto' => 'No',
+            ],
+        ]);
+
+        $template = [
+            'column_mappings' => [
+                'ship id' => 'ship_id',
+                'peso' => 'weight',
+                'peso 2' => 'weight_2',
+                'altura' => 'height',
+                'ancho' => 'width',
+                'largo' => 'length',
+                'coste' => 'cost',
+                'coste extra' => 'extra_cost',
+                'cliente' => 'client',
+                'direccion' => 'address',
+                'codigo postal' => 'postal_code',
+                'pais' => 'country',
+                'devuelto' => 'returned',
+            ],
+            "aggregations" => [
+                [
+                    "type" => "average",
+                    "fields" => ["cost", "extra_cost"],
+                ]
+            ],
+            "validation_rules" => [
+            ],
+        ];
+
+        $import = new InvoiceImport($template, []);
+
+        $import->collection($rows);
+
+        $processedData = $import->processedData;
+
+        $this->assertCount(3, $processedData);
+
+        $this->assertEquals([
+            'ship_id' => 'A001',
+            'weight' => 5,
+            'weight_2' => 5,
+            'height' => 50,
+            'width' => 30,
+            'length' => 20,
+            'cost' => 200,
+            'extra_cost' => 50,
+            'client' => 'Cliente 1',
+            'address' => 'Calle 123',
+            'postal_code' => '28001',
+            'country' => 'ES',
+            'returned' => 'No',
+        ], $processedData[0]);
+
+        $this->assertEquals([
+            'ship_id' => 'A004',
+            'weight' => 70,
+            'weight_2' => 10,
+            'height' => 60,
+            'width' => 40,
+            'length' => 25,
+            'cost' => 300,
+            'extra_cost' => 70,
+            'client' => 'Cliente 2',
+            'address' => 'Calle 456',
+            'postal_code' => '28002',
+            'country' => 'US',
+            'returned' => 'No',
+        ], $processedData[1]);
+
+
+        $this->assertEquals([
+            'ship_id' => null,
+            'weight' => null,
+            'weight_2' => null,
+            'height' => null,
+            'width' => null,
+            'length' => null,
+            'cost' => 250,
+            'extra_cost' => 60,
+            'client' => null,
+            'address' => null,
+            'postal_code' => null,
+            'country' => null,
+            'returned' => null,
+        ], $processedData[2]);
+
+
+    }
+
+    public function testAggregationsWorkCorrectWithSumAndAvg(){
+
+        $rows = new Collection([
+            [
+                'ship id' => 'A001',
+                'peso' => 5,
+                'peso 2' => 5,
+                'altura' => 50,
+                'ancho' => 30,
+                'largo' => 20,
+                'coste' => 200,
+                'coste extra' => 50,
+                'cliente' => 'Cliente 1',
+                'direccion' => 'Calle 123',
+                'codigo postal' => '28001',
+                'pais' => 'ES',
+                'devuelto' => 'No',
+            ],
+            [
+                'ship id' => 'A004',
+                'peso' => 70,
+                'peso 2' => 10,
+                'altura' => 60,
+                'ancho' => 40,
+                'largo' => 25,
+                'coste' => 300,
+                'coste extra' => 70,
+                'cliente' => 'Cliente 2',
+                'direccion' => 'Calle 456',
+                'codigo postal' => '28002',
+                'pais' => 'US',
+                'devuelto' => 'No',
+            ],
+        ]);
+
+        $template = [
+            'column_mappings' => [
+                'ship id' => 'ship_id',
+                'peso' => 'weight',
+                'peso 2' => 'weight_2',
+                'altura' => 'height',
+                'ancho' => 'width',
+                'largo' => 'length',
+                'coste' => 'cost',
+                'coste extra' => 'extra_cost',
+                'cliente' => 'client',
+                'direccion' => 'address',
+                'codigo postal' => 'postal_code',
+                'pais' => 'country',
+                'devuelto' => 'returned',
+            ],
+            "aggregations" => [
+                [
+                    "type" => "sum",
+                    "fields" => ["cost", "extra_cost"],
+                ],
+                [
+                    "type" => "average",
+                    "fields" => ["height", "weight"],
+                ]
+            ],
+            "validation_rules" => [
+            ],
+        ];
+
+        $import = new InvoiceImport($template, []);
+
+        $import->collection($rows);
+
+        $processedData = $import->processedData;
+
+        $this->assertCount(3, $processedData);
+
+        $this->assertEquals([
+            'ship_id' => 'A001',
+            'weight' => 5,
+            'weight_2' => 5,
+            'height' => 50,
+            'width' => 30,
+            'length' => 20,
+            'cost' => 200,
+            'extra_cost' => 50,
+            'client' => 'Cliente 1',
+            'address' => 'Calle 123',
+            'postal_code' => '28001',
+            'country' => 'ES',
+            'returned' => 'No',
+        ], $processedData[0]);
+
+        $this->assertEquals([
+            'ship_id' => 'A004',
+            'weight' => 70,
+            'weight_2' => 10,
+            'height' => 60,
+            'width' => 40,
+            'length' => 25,
+            'cost' => 300,
+            'extra_cost' => 70,
+            'client' => 'Cliente 2',
+            'address' => 'Calle 456',
+            'postal_code' => '28002',
+            'country' => 'US',
+            'returned' => 'No',
+        ], $processedData[1]);
+
+        $this->assertEquals([
+            'ship_id' => null,
+            'weight' => 37.5,
+            'weight_2' => null,
+            'height' => 55,
+            'width' => null,
+            'length' => null,
+            'cost' => 500,
+            'extra_cost' => 120,
+            'client' => null,
+            'address' => null,
+            'postal_code' => null,
+            'country' => null,
+            'returned' => null,
+        ], $processedData[2]);
+    }
+
+
+    public function testAggregationsWith2EqualField(){
+
+            $rows = new Collection([
+            [
+                'ship id' => 'A001',
+                'peso' => 5,
+                'peso 2' => 5,
+                'altura' => 50,
+                'ancho' => 30,
+                'largo' => 20,
+                'coste' => 200,
+                'coste extra' => 50,
+                'cliente' => 'Cliente 1',
+                'direccion' => 'Calle 123',
+                'codigo postal' => '28001',
+                'pais' => 'ES',
+                'devuelto' => 'No',
+            ],
+            [
+                'ship id' => 'A004',
+                'peso' => 70,
+                'peso 2' => 10,
+                'altura' => 60,
+                'ancho' => 40,
+                'largo' => 25,
+                'coste' => 300,
+                'coste extra' => 70,
+                'cliente' => 'Cliente 2',
+                'direccion' => 'Calle 456',
+                'codigo postal' => '28002',
+                'pais' => 'US',
+                'devuelto' => 'No',
+            ],
+        ]);
+
+        $template = [
+            'column_mappings' => [
+                'ship id' => 'ship_id',
+                'peso' => 'weight',
+                'peso 2' => 'weight_2',
+                'altura' => 'height',
+                'ancho' => 'width',
+                'largo' => 'length',
+                'coste' => 'cost',
+                'coste extra' => 'extra_cost',
+                'cliente' => 'client',
+                'direccion' => 'address',
+                'codigo postal' => 'postal_code',
+                'pais' => 'country',
+                'devuelto' => 'returned',
+            ],
+            "aggregations" => [
+                [
+                    "type" => "sum",
+                    "fields" => ["cost", "extra_cost"],
+                ],
+                [
+                    "type" => "average",
+                    "fields" => ["cost", "weight"],
+                ]
+            ],
+            "validation_rules" => [
+            ],
+        ];
+
+        $import = new InvoiceImport($template, []);
+
+        $import->collection($rows);
+
+        $processedData = $import->processedData;
+
+        $this->assertCount(3, $processedData);
+
+        $this->assertEquals([
+            'ship_id' => 'A001',
+            'weight' => 5,
+            'weight_2' => 5,
+            'height' => 50,
+            'width' => 30,
+            'length' => 20,
+            'cost' => 200,
+            'extra_cost' => 50,
+            'client' => 'Cliente 1',
+            'address' => 'Calle 123',
+            'postal_code' => '28001',
+            'country' => 'ES',
+            'returned' => 'No',
+        ], $processedData[0]);
+
+        $this->assertEquals([
+            'ship_id' => 'A004',
+            'weight' => 70,
+            'weight_2' => 10,
+            'height' => 60,
+            'width' => 40,
+            'length' => 25,
+            'cost' => 300,
+            'extra_cost' => 70,
+            'client' => 'Cliente 2',
+            'address' => 'Calle 456',
+            'postal_code' => '28002',
+            'country' => 'US',
+            'returned' => 'No',
+        ], $processedData[1]);
+
+        $this->assertEquals([
+            'ship_id' => null,
+            'weight' => 37.5,
+            'weight_2' => null,
+            'height' => null,
+            'width' => null,
+            'length' => null,
+            'cost' => 250,
+            'extra_cost' => 120,
+            'client' => null,
+            'address' => null,
+            'postal_code' => null,
+            'country' => null,
+            'returned' => null,
+        ], $processedData[2]);
+
+    }
+
+    public function testAggregationWithFieldNotExist(){
+
+        $rows = new Collection([
+            [
+                'ship id' => 'A001',
+                'peso' => 5,
+                'peso 2' => 5,
+                'altura' => 50,
+                'ancho' => 30,
+                'largo' => 20,
+                'coste' => 200,
+                'coste extra' => 50,
+                'cliente' => 'Cliente 1',
+                'direccion' => 'Calle 123',
+                'codigo postal' => '28001',
+                'pais' => 'ES',
+                'devuelto' => 'No',
+            ],
+            [
+                'ship id' => 'A004',
+                'peso' => 70,
+                'peso 2' => 10,
+                'altura' => 60,
+                'ancho' => 40,
+                'largo' => 25,
+                'coste' => 300,
+                'coste extra' => 70,
+                'cliente' => 'Cliente 2',
+                'direccion' => 'Calle 456',
+                'codigo postal' => '28002',
+                'pais' => 'US',
+                'devuelto' => 'No',
+            ],
+        ]);
+
+        $template = [
+            'column_mappings' => [
+                'ship id' => 'ship_id',
+                'peso' => 'weight',
+                'peso 2' => 'weight_2',
+                'altura' => 'height',
+                'ancho' => 'width',
+                'largo' => 'length',
+                'coste' => 'cost',
+                'coste extra' => 'extra_cost',
+                'cliente' => 'client',
+                'direccion' => 'address',
+                'codigo postal' => 'postal_code',
+                'pais' => 'country',
+                'devuelto' => 'returned',
+            ],
+            "aggregations" => [
+                [
+                    "type" => "sum",
+                    "fields" => ["cost", "extra_cost", "coste_extradfgdfg"],
+                ],
+                [
+                    "type" => "average",
+                    "fields" => ["cost", "weight"],
+                ]
+            ],
+            "validation_rules" => [
+            ],
+        ];
+
+        $import = new InvoiceImport($template, []);
+
+        $import->collection($rows);
+
+        $processedData = $import->processedData;
+
+        $this->assertCount(3, $processedData);
+
+        $this->assertEquals([
+            'ship_id' => 'A001',
+            'weight' => 5,
+            'weight_2' => 5,
+            'height' => 50,
+            'width' => 30,
+            'length' => 20,
+            'cost' => 200,
+            'extra_cost' => 50,
+            'client' => 'Cliente 1',
+            'address' => 'Calle 123',
+            'postal_code' => '28001',
+            'country' => 'ES',
+            'returned' => 'No',
+        ], $processedData[0]);
+
+        $this->assertEquals([
+            'ship_id' => 'A004',
+            'weight' => 70,
+            'weight_2' => 10,
+            'height' => 60,
+            'width' => 40,
+            'length' => 25,
+            'cost' => 300,
+            'extra_cost' => 70,
+            'client' => 'Cliente 2',
+            'address' => 'Calle 456',
+            'postal_code' => '28002',
+            'country' => 'US',
+            'returned' => 'No',
+        ], $processedData[1]);
+
+        $this->assertEquals([
+            'ship_id' => null,
+            'weight' => 37.5,
+            'weight_2' => null,
+            'height' => null,
+            'width' => null,
+            'length' => null,
+            'cost' => 250,
+            'extra_cost' => 120,
+            'client' => null,
+            'address' => null,
+            'postal_code' => null,
+            'country' => null,
+            'returned' => null,
+        ], $processedData[2]);
+
+    }
+
+
+    public function testAggregationsIfTypeIsNotExist(){
+
+        $rows = new Collection([
+            [
+                'ship id' => 'A001',
+                'peso' => 5,
+                'peso 2' => 5,
+                'altura' => 50,
+                'ancho' => 30,
+                'largo' => 20,
+                'coste' => 200,
+                'coste extra' => 50,
+                'cliente' => 'Cliente 1',
+                'direccion' => 'Calle 123',
+                'codigo postal' => '28001',
+                'pais' => 'ES',
+                'devuelto' => 'No',
+            ],
+            [
+                'ship id' => 'A004',
+                'peso' => 70,
+                'peso 2' => 10,
+                'altura' => 60,
+                'ancho' => 40,
+                'largo' => 25,
+                'coste' => 300,
+                'coste extra' => 70,
+                'cliente' => 'Cliente 2',
+                'direccion' => 'Calle 456',
+                'codigo postal' => '28002',
+                'pais' => 'US',
+                'devuelto' => 'No',
+            ],
+        ]);
+
+        $template = [
+            'column_mappings' => [
+                'ship id' => 'ship_id',
+                'peso' => 'weight',
+                'peso 2' => 'weight_2',
+                'altura' => 'height',
+                'ancho' => 'width',
+                'largo' => 'length',
+                'coste' => 'cost',
+                'coste extra' => 'extra_cost',
+                'cliente' => 'client',
+                'direccion' => 'address',
+                'codigo postal' => 'postal_code',
+                'pais' => 'country',
+                'devuelto' => 'returned',
+            ],
+            "aggregations" => [
+                [
+                    "type" => "sum",
+                    "fields" => ["cost", "extra_cost"],
+                ],
+                [
+                    "type" => "average",
+                    "fields" => ["cost", "weight"],
+                ],
+                [
+                    "type" => "pepe",
+                    "fields" => ["cost", "weight"],
+                ]
+            ],
+            "validation_rules" => [
+            ],
+        ];
+
+        $import = new InvoiceImport($template, []);
+
+        $import->collection($rows);
+
+        $processedData = $import->processedData;
+
+        $this->assertCount(3, $processedData);
+
+        $this->assertEquals([
+            'ship_id' => 'A001',
+            'weight' => 5,
+            'weight_2' => 5,
+            'height' => 50,
+            'width' => 30,
+            'length' => 20,
+            'cost' => 200,
+            'extra_cost' => 50,
+            'client' => 'Cliente 1',
+            'address' => 'Calle 123',
+            'postal_code' => '28001',
+            'country' => 'ES',
+            'returned' => 'No',
+        ], $processedData[0]);
+
+        $this->assertEquals([
+            'ship_id' => 'A004',
+            'weight' => 70,
+            'weight_2' => 10,
+            'height' => 60,
+            'width' => 40,
+            'length' => 25,
+            'cost' => 300,
+            'extra_cost' => 70,
+            'client' => 'Cliente 2',
+            'address' => 'Calle 456',
+            'postal_code' => '28002',
+            'country' => 'US',
+            'returned' => 'No',
+        ], $processedData[1]);
+
+        $this->assertEquals([
+            'ship_id' => null,
+            'weight' => 37.5,
+            'weight_2' => null,
+            'height' => null,
+            'width' => null,
+            'length' => null,
+            'cost' => 250,
+            'extra_cost' => 120,
+            'client' => null,
+            'address' => null,
+            'postal_code' => null,
+            'country' => null,
+            'returned' => null,
+        ], $processedData[2]);
+
+    }
+
+
+    public function testAggregationsIfTypeIsNotExist2(){
+
+        $rows = new Collection([
+            [
+                'ship id' => 'A001',
+                'peso' => 5,
+                'peso 2' => 5,
+                'altura' => 50,
+                'ancho' => 30,
+                'largo' => 20,
+                'coste' => 200,
+                'coste extra' => 50,
+                'cliente' => 'Cliente 1',
+                'direccion' => 'Calle 123',
+                'codigo postal' => '28001',
+                'pais' => 'ES',
+                'devuelto' => 'No',
+            ],
+            [
+                'ship id' => 'A004',
+                'peso' => 70,
+                'peso 2' => 10,
+                'altura' => 60,
+                'ancho' => 40,
+                'largo' => 25,
+                'coste' => 300,
+                'coste extra' => 70,
+                'cliente' => 'Cliente 2',
+                'direccion' => 'Calle 456',
+                'codigo postal' => '28002',
+                'pais' => 'US',
+                'devuelto' => 'No',
+            ],
+        ]);
+
+        $template = [
+            'column_mappings' => [
+                'ship id' => 'ship_id',
+                'peso' => 'weight',
+                'peso 2' => 'weight_2',
+                'altura' => 'height',
+                'ancho' => 'width',
+                'largo' => 'length',
+                'coste' => 'cost',
+                'coste extra' => 'extra_cost',
+                'cliente' => 'client',
+                'direccion' => 'address',
+                'codigo postal' => 'postal_code',
+                'pais' => 'country',
+                'devuelto' => 'returned',
+            ],
+            "aggregations" => [
+                [
+                    "type" => "pepe",
+                    "fields" => ["cost", "weight"],
+                ]
+            ],
+            "validation_rules" => [
+            ],
+        ];
+
+        $import = new InvoiceImport($template, []);
+
+        $import->collection($rows);
+
+        $processedData = $import->processedData;
+
+        $this->assertCount(3, $processedData);
+
+        $this->assertEquals([
+            'ship_id' => 'A001',
+            'weight' => 5,
+            'weight_2' => 5,
+            'height' => 50,
+            'width' => 30,
+            'length' => 20,
+            'cost' => 200,
+            'extra_cost' => 50,
+            'client' => 'Cliente 1',
+            'address' => 'Calle 123',
+            'postal_code' => '28001',
+            'country' => 'ES',
+            'returned' => 'No',
+        ], $processedData[0]);
+
+        $this->assertEquals([
+            'ship_id' => 'A004',
+            'weight' => 70,
+            'weight_2' => 10,
+            'height' => 60,
+            'width' => 40,
+            'length' => 25,
+            'cost' => 300,
+            'extra_cost' => 70,
+            'client' => 'Cliente 2',
+            'address' => 'Calle 456',
+            'postal_code' => '28002',
+            'country' => 'US',
+            'returned' => 'No',
+        ], $processedData[1]);
+
+        $this->assertEquals([
+            'ship_id' => null,
+            'weight' => null,
+            'weight_2' => null,
+            'height' => null,
+            'width' => null,
+            'length' => null,
+            'cost' => null,
+            'extra_cost' => null,
+            'client' => null,
+            'address' => null,
+            'postal_code' => null,
+            'country' => null,
+            'returned' => null,
+        ], $processedData[2]);
+
+    }
+
+    public function testAggregationsIfCollectionIsEmpty(){
+
+            $rows = new Collection([]);
+
+            $template = [
+                'column_mappings' => [],
+                "aggregations" => [],
+                "validation_rules" => [
+                ],
+            ];
+
+            $import = new InvoiceImport($template, []);
+
+            $import->collection($rows);
+
+            $processedData = $import->processedData;
+
+            $this->assertCount(0, $processedData);
+    }
+
+    public function testWithCollectionWithKeysButValuesAreEmpty(){
+
+        $rows = new Collection([
+            [
+                'ship id' => '',
+                'peso' => '',
+                'peso 2' => '',
+                'altura' => '',
+                'ancho' => '',
+                'largo' => '',
+                'coste' => '',
+                'coste extra' => '',
+                'cliente' => '',
+                'direccion' => '',
+                'codigo postal' => '',
+                'pais' => '',
+                'devuelto' => '',
+            ],
+            [
+                'ship id' => '',
+                'peso' => '',
+                'peso 2' => '',
+                'altura' => '',
+                'ancho' => '',
+                'largo' => '',
+                'coste' => '',
+                'coste extra' => '',
+                'cliente' => '',
+                'direccion' => '',
+                'codigo postal' => '',
+                'pais' => '',
+                'devuelto' => '',
+            ],
+        ]);
+
+        $template = [
+            'column_mappings' => [
+                'ship id' => 'ship_id',
+                'peso' => 'weight',
+                'peso 2' => 'weight_2',
+                'altura' => 'height',
+                'ancho' => 'width',
+                'largo' => 'length',
+                'coste' => 'cost',
+                'coste extra' => 'extra_cost',
+                'cliente' => 'client',
+                'direccion' => 'address',
+                'codigo postal' => 'postal_code',
+                'pais' => 'country',
+                'devuelto' => 'returned',
+            ],
+            "aggregations" => [],
+            "validation_rules" => [
+            ],
+        ];
+
+        $import = new InvoiceImport($template, []);
+
+        $import->collection($rows);
+
+        $processedData = $import->processedData;
+
+        $this->assertCount(2, $processedData);
+
+        $this->assertEquals([
+            'ship_id' => '',
+            'weight' => '',
+            'weight_2' => '',
+            'height' => '',
+            'width' => '',
+            'length' => '',
+            'cost' => '',
+            'extra_cost' => '',
+            'client' => '',
+            'address' => '',
+            'postal_code' => '',
+            'country' => '',
+            'returned' => '',
+        ], $processedData[0]);
+    }
+
+    public function testWithCollectionWithKeysButValuesAreEmptyAndValidationRules(){
+
+            $rows = new Collection([
+                [
+                    'ship id' => '',
+                    'peso' => '',
+                    'peso 2' => '',
+                    'altura' => '',
+                    'ancho' => '',
+                    'largo' => '',
+                    'coste' => '',
+                    'coste extra' => '',
+                    'cliente' => '',
+                    'direccion' => '',
+                    'codigo postal' => '',
+                    'pais' => '',
+                    'devuelto' => '',
+                ],
+                [
+                    'ship id' => '',
+                    'peso' => '',
+                    'peso 2' => '',
+                    'altura' => '',
+                    'ancho' => '',
+                    'largo' => '',
+                    'coste' => '',
+                    'coste extra' => '',
+                    'cliente' => '',
+                    'direccion' => '',
+                    'codigo postal' => '',
+                    'pais' => '',
+                    'devuelto' => '',
+                ],
+            ]);
+
+            $template = [
+                'column_mappings' => [
+                    'ship id' => 'ship_id',
+                    'peso' => 'weight',
+                    'peso 2' => 'weight_2',
+                    'altura' => 'height',
+                    'ancho' => 'width',
+                    'largo' => 'length',
+                    'coste' => 'cost',
+                    'coste extra' => 'extra_cost',
+                    'cliente' => 'client',
+                    'direccion' => 'address',
+                    'codigo postal' => 'postal_code',
+                    'pais' => 'country',
+                    'devuelto' => 'returned',
+                ],
+                "aggregations" => [],
+                "validation_rules" => [
+                     [
+                        'field' => 'country',
+                        'operator' => '==',
+                        'value' => 'ES',
+                        'conditions' => [
+                            [
+                                'field' => 'weight',
+                                'operator' => '>',
+                                'value' => 10,
+                                'highlight' => '000000',
+                            ],
+                        ],
+                    ],
+                ],
+            ];
+
+            $import = new InvoiceImport($template, []);
+
+            $import->collection($rows);
+
+            $processedData = $import->processedData;
+
+            $this->assertCount(2, $processedData);
+
+            $this->assertEquals([
+                'ship_id' => '',
+                'weight' => '',
+                'weight_2' => '',
+                'height' => '',
+                'width' => '',
+                'length' => '',
+                'cost' => '',
+                'extra_cost' => '',
+                'client' => '',
+                'address' => '',
+                'postal_code' => '',
+                'country' => '',
+                'returned' => '',
+            ], $processedData[0]);
+
+            $this->assertEquals([
+                'ship_id' => '',
+                'weight' => '',
+                'weight_2' => '',
+                'height' => '',
+                'width' => '',
+                'length' => '',
+                'cost' => '',
+                'extra_cost' => '',
+                'client' => '',
+                'address' => '',
+                'postal_code' => '',
+                'country' => '',
+                'returned' => '',
+            ], $processedData[1]);
+    }
+
+    public function testWithCollectionWithKeysButValuesAreEmptyAndAggregations(){
+
+            $rows = new Collection([
+                [
+                    'ship id' => '',
+                    'peso' => '',
+                    'peso 2' => '',
+                    'altura' => '',
+                    'ancho' => '',
+                    'largo' => '',
+                    'coste' => '',
+                    'coste extra' => '',
+                    'cliente' => '',
+                    'direccion' => '',
+                    'codigo postal' => '',
+                    'pais' => '',
+                    'devuelto' => '',
+                ],
+                [
+                    'ship id' => '',
+                    'peso' => '',
+                    'peso 2' => '',
+                    'altura' => '',
+                    'ancho' => '',
+                    'largo' => '',
+                    'coste' => '',
+                    'coste extra' => '',
+                    'cliente' => '',
+                    'direccion' => '',
+                    'codigo postal' => '',
+                    'pais' => '',
+                    'devuelto' => '',
+                ],
+            ]);
+
+            $template = [
+                'column_mappings' => [
+                    'ship id' => 'ship_id',
+                    'peso' => 'weight',
+                    'peso 2' => 'weight_2',
+                    'altura' => 'height',
+                    'ancho' => 'width',
+                    'largo' => 'length',
+                    'coste' => 'cost',
+                    'coste extra' => 'extra_cost',
+                    'cliente' => 'client',
+                    'direccion' => 'address',
+                    'codigo postal' => 'postal_code',
+                    'pais' => 'country',
+                    'devuelto' => 'returned',
+                ],
+                "aggregations" => [
+                    [
+                        "type" => "sum",
+                        "fields" => ["cost", "extra_cost"],
+                    ],
+                    [
+                        "type" => "average",
+                        "fields" => ["cost", "weight"],
+                    ]
+                ],
+                "validation_rules" => [
+                ],
+            ];
+
+            $import = new InvoiceImport($template, []);
+
+            $import->collection($rows);
+
+            $processedData = $import->processedData;
+
+            $this->assertCount(3, $processedData);
+
+            $this->assertEquals([
+                'ship_id' => '',
+                'weight' => '',
+                'weight_2' => '',
+                'height' => '',
+                'width' => '',
+                'length' => '',
+                'cost' => '',
+                'extra_cost' => '',
+                'client' => '',
+                'address' => '',
+                'postal_code' => '',
+                'country' => '',
+                'returned' => '',
+            ], $processedData[0]);
+
+            $this->assertEquals([
+                'ship_id' => '',
+                'weight' => '',
+                'weight_2' => '',
+                'height' => '',
+                'width' => '',
+                'length' => '',
+                'cost' => '',
+                'extra_cost' => '',
+                'client' => '',
+                'address' => '',
+                'postal_code' => '',
+                'country' => '',
+                'returned' => '',
+            ], $processedData[1]);
+
+            $this->assertEquals([
+                'ship_id' => null,
+                'weight' => null,
+                'weight_2' => null,
+                'height' => null,
+                'width' => null,
+                'length' => null,
+                'cost' => null,
+                'extra_cost' => null,
+                'client' => null,
+                'address' => null,
+                'postal_code' => null,
+                'country' => null,
+                'returned' => null,
+            ], $processedData[2]);
+    }
+
+    public function testWithCollectionWithAllKeysSame(){
+
+            $rows = new Collection([
+                [
+                    'peso' => 'A001',
+                    'peso' => 5,
+                    'peso' => 5,
+                    'peso' => 50,
+                ],
+                [
+                    'peso' => 'A004',
+                    'peso' => 70,
+                    'peso' => 10,
+                    'peso' => 60,
+                ]
+            ]);
+
+            $template = [
+                'column_mappings' => [
+                    'peso' => 'ship_id',
+                    'peso' => 'weight',
+                    'peso' => 'weight_2',
+                    'peso' => 'height',
+                ],
+                "aggregations" => [
+                ],
+                "validation_rules" => [
+                ],
+            ];
+
+            $import = new InvoiceImport($template, []);
+
+            $import->collection($rows);
+
+            $processedData = $import->processedData;
+
+            $this->assertCount(2, $processedData);
+
+            $this->assertEquals([
+                'height' => 50,
+            ], $processedData[0]);
+    }
+
 }

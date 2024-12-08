@@ -52,6 +52,11 @@ class InvoiceImport implements ToCollection, WithHeadingRow
             // Guardar la fila procesada
             $this->processedData[] = $correctedRow;
         }
+
+        if(!empty($this->processedData) && !empty($this->template['aggregations']) && count($this->aggregations) > 0){
+            // Agregar las agregaciones al resultado final
+            $this->addAggregationsToProcessedData($this->processedData);
+        }
     }
     // Detectar filas duplicadas según un campo especificado en validation_rules
     private function markDuplicateRows($row)
@@ -305,9 +310,21 @@ class InvoiceImport implements ToCollection, WithHeadingRow
             return;
         }
 
+        $seenFields = []; // Para rastrear qué campos ya están asignados a un tipo de agregación
+
         foreach ($this->template['aggregations'] as $aggregation) {
-            foreach ($aggregation['fields'] as $field) {
-                $this->aggregations[$aggregation['type']][$field] = [];
+            $type = $aggregation['type'];
+            $fields = $aggregation['fields'] ?? [];
+
+            foreach ($fields as $field) {
+                if (isset($seenFields[$field])) {
+                    continue; // Si el campo ya está asignado a un tipo de agregación, saltar
+                }
+
+                $seenFields[$field] = $type; // Registrar el campo como usado por este tipo de agregación
+
+                // Inicializar las agregaciones para el campo
+                $this->aggregations[$type][$field] = [];
             }
         }
     }
@@ -329,22 +346,33 @@ class InvoiceImport implements ToCollection, WithHeadingRow
 
     private function addAggregationsToProcessedData($mappedRowResult)
     {
+        // Crear un array con todas las columnas presentes en el resultado procesado, inicializadas en null
+        $aggregatedRow = array_fill_keys(array_keys($mappedRowResult[0]), null);
 
-        $aggregatedRow = [];
-        foreach($mappedRowResult as $key => $value){
-            $aggregatedRow[$key] = null;
-        }
-
+        // Rellenar los campos de agregación con sus valores calculados
         foreach ($this->aggregations as $type => $fields) {
             foreach ($fields as $field => $values) {
+                // Filtrar valores no numéricos
+                $numericValues = array_filter($values, function ($value) {
+                    return is_numeric($value);
+                });
+
+                // Continuar si no hay valores numéricos
+                if (empty($numericValues)) {
+                    continue;
+                }
+
                 if ($type === 'sum') {
-                    $aggregatedRow[$field] = array_sum($values);
+                    $aggregatedRow[$field] = array_sum($numericValues);
                 } elseif ($type === 'average') {
-                    $aggregatedRow[$field] = array_sum($values) / count($values);
+                    $aggregatedRow[$field] = count($numericValues) > 0 ? array_sum($numericValues) / count($numericValues) : null;
                 }
             }
         }
 
+        // Agregar la fila de agregaciones al conjunto de datos procesados
         $this->processedData[] = $aggregatedRow;
     }
+
+
 }
