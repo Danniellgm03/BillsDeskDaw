@@ -22,15 +22,14 @@ class FileController extends Controller
         $files = File::where('company_id', auth()->user()->company_id)
                     ->where(function ($query) use ($search) {
                         if ($search) {
-                            $query->where('name', 'like', "%$search%")
+                            $query->where('file_name', 'like', "%$search%")
                                 ->orWhere('description', 'like', "%$search%");
                         }
                     })
                     ->when($isFav !== null, function ($query) use ($isFav) {
                         // Si is_fav está presente en la solicitud, filtra por ese valor
                         $query->where('is_fav', (bool) $isFav);
-                    })
-                    ->limit($limit)->paginate($perPage);
+                    })->paginate($perPage);
 
         return response()->json([
             'data' => $files,
@@ -41,18 +40,7 @@ class FileController extends Controller
     // if not is the same company or user, return 403
     public function show(Request $request, $id)
     {
-        $file = File::where('company_id', auth()->
-            user()->company_id)->find($id);
-
-
-        $user_logeed = auth()->id();
-        $company_logeed = auth()->user()->company_id;
-
-        if ($file->created_by != $user_logeed && $file->company_id != $company_logeed) {
-            return response()->json([
-                'message' => 'You can not see this file',
-            ], 403);
-        }
+        $file = File::where('company_id', auth()->user()->company_id)->find($id);
 
         if (!$file) {
             return response()->json([
@@ -60,10 +48,20 @@ class FileController extends Controller
             ], 404);
         }
 
+        $user_logged = auth()->id();
+        $company_logged = auth()->user()->company_id;
+
+        if ($file->created_by != $user_logged && $file->company_id != $company_logged) {
+            return response()->json([
+                'message' => 'You can not see this file',
+            ], 403);
+        }
+
         return response()->json([
             'data' => $file,
         ]);
     }
+
 
     public function showByCompany(Request $request, $company_id)
     {
