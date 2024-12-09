@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Company;
+use Illuminate\Support\Facades\Auth;
 
 
 class CompanyController extends Controller
@@ -71,7 +72,20 @@ class CompanyController extends Controller
     }
 
     public function meCompany(){
-        return response()->json(Auth::user());
+
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json(['error' => 'Usuario no encontrado'], 404);
+        }
+
+        $company = $user->company;
+
+        if(!$company){
+            return response()->json(['error' => 'Usuario no tiene empresa'], 404);
+        }
+
+        return response()->json($company);
     }
 
 }

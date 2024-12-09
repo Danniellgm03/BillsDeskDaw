@@ -15,7 +15,13 @@ class ContactController extends Controller
      */
     public function index()
     {
-        $company = Auth::user()->company;
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json(['error' => 'Usuario no autenticado'], 401);
+        }
+
+        $company = $user->company;
 
         if (!$company) {
             return response()->json(['error' => 'Empresa no encontrada para el usuario autenticado'], 404);
@@ -30,7 +36,14 @@ class ContactController extends Controller
      */
     public function store(Request $request)
     {
-        $company = Auth::user()->company;
+
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json(['error' => 'Usuario no autenticado'], 401);
+        }
+
+        $company = $user->company;
 
         if (!$company) {
             return response()->json(['error' => 'Empresa no encontrada para el usuario autenticado'], 404);
@@ -56,7 +69,13 @@ class ContactController extends Controller
      */
     public function show($contactId)
     {
-        $company = Auth::user()->company;
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json(['error' => 'Usuario no autenticado'], 401);
+        }
+
+        $company = $user->company;
 
         if (!$company) {
             return response()->json(['error' => 'Empresa no encontrada para el usuario autenticado'], 404);
@@ -76,7 +95,14 @@ class ContactController extends Controller
      */
     public function update(Request $request, $contactId)
     {
-        $company = Auth::user()->company;
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json(['error' => 'Usuario no autenticado'], 401);
+        }
+
+
+        $company = $user->company;
 
         if (!$company) {
             return response()->json(['error' => 'Empresa no encontrada para el usuario autenticado'], 404);
@@ -108,7 +134,15 @@ class ContactController extends Controller
      */
     public function destroy($contactId)
     {
-        $company = Auth::user()->company;
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json(['error' => 'Usuario no autenticado'], 401);
+        }
+
+        $company = $user->company;
+
+
 
         if (!$company) {
             return response()->json(['error' => 'Empresa no encontrada para el usuario autenticado'], 404);
@@ -121,6 +155,6 @@ class ContactController extends Controller
         }
 
         $contact->delete();
-        return response()->json(['message' => 'Contacto eliminado']);
+        return response()->json(null, 204);
     }
 }
