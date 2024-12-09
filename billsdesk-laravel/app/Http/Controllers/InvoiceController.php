@@ -20,7 +20,13 @@ class InvoiceController extends Controller
         $perPage = $request->input('per_page', 5);
         $search = $request->input('search', ''); // Parámetro de búsqueda
 
-        $invoices = Invoice::where('company_id', auth()->user()->company_id)
+        $user = auth()->user();
+
+        if (!$user) {
+            return response()->json(['message' => 'No autorizado'], 401);
+        }
+
+        $invoices = Invoice::where('company_id', $user->company_id)
             ->where(function ($query) use ($search) {
                 if ($search) {
                     $query->where('name_invoice', 'like', "%$search%")
@@ -35,8 +41,15 @@ class InvoiceController extends Controller
 
     public function show($id)
     {
+
+        $user = auth()->user();
+
+        if (!$user) {
+            return response()->json(['message' => 'No autorizado'], 401);
+        }
+
         $invoice = Invoice::where('id', $id)
-            ->where('company_id', auth()->user()->company_id)
+            ->where('company_id', $user->company_id)
             ->firstOrFail();
 
         return response()->json($invoice);
@@ -55,8 +68,14 @@ class InvoiceController extends Controller
             return response()->json(['errors' => $validator->errors()], 400);
         }
 
+        $user = auth()->user();
+
+        if (!$user) {
+            return response()->json(['message' => 'No autorizado'], 401);
+        }
+
         $invoice = Invoice::create([
-            'company_id' => auth()->user()->company_id,
+            'company_id' => $user->company_id,
             'user_id' => auth()->id(),
             'file_id' => $request->input('file_id'),
             'status' => 'pending',
@@ -69,8 +88,15 @@ class InvoiceController extends Controller
 
     public function getTemplate($invoiceId)
     {
+
+        $user = auth()->user();
+
+        if (!$user) {
+            return response()->json(['message' => 'No autorizado'], 401);
+        }
+
         $invoice = Invoice::where('id', $invoiceId)
-            ->where('company_id', auth()->user()->company_id
+            ->where('company_id', $user->company_id
             )->firstOrFail();
 
         if (!$invoice) {
@@ -176,8 +202,15 @@ class InvoiceController extends Controller
 
     public function update(Request $request, $id)
     {
+
+        $user = auth()->user();
+
+        if (!$user) {
+            return response()->json(['message' => 'No autorizado'], 401);
+        }
+
         $invoice = Invoice::where('id', $id)
-            ->where('company_id', auth()->user()->company_id)
+            ->where('company_id', $user->company_id)
             ->firstOrFail();
 
         $validator = Validator::make($request->all(), [
