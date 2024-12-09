@@ -24,6 +24,11 @@ class UserController extends Controller
         $search = $request->input('search', '');
 
         $user = Auth::user();
+
+        if (!$user) {
+            return response()->json(['error' => 'Usuario no autenticado'], 401);
+        }
+
         $company = $user->company;
         $users = $company->users()
             ->where(function ($query) use ($search) {
@@ -50,7 +55,13 @@ class UserController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $company = Auth::user()->company;
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json(['error' => 'Usuario no autenticado'], 401);
+        }
+
+        $company = $user->company;
 
         // Crear el nuevo usuario
         $user = User::create([
@@ -68,11 +79,17 @@ class UserController extends Controller
     {
         $user = User::find($id);
 
+        $Authuser = Auth::user();
+
+        if (!$Authuser) {
+            return response()->json(['error' => 'Usuario no autenticado'], 401);
+        }
+
         if (!$user) {
             return response()->json(['error' => 'Usuario no encontrado'], 404);
         }
 
-        if (Auth::user()->company_id !== $user->company_id) {
+        if ($Authuser->company_id !== $user->company_id) {
             return response()->json(['error' => 'No tienes permisos para ver este usuario'], 403);
         }
 
@@ -84,11 +101,17 @@ class UserController extends Controller
     {
         $user = User::find($id);
 
+        $Authuser = Auth::user();
+
+        if (!$Authuser) {
+            return response()->json(['error' => 'Usuario no autenticado'], 401);
+        }
+
         if (!$user) {
             return response()->json(['error' => 'Usuario no encontrado'], 404);
         }
 
-        if (Auth::user()->company_id !== $user->company_id) {
+        if ($Authuser->company_id !== $user->company_id) {
             return response()->json(['error' => 'No tienes permisos para editar este usuario'], 403);
         }
 
@@ -145,13 +168,23 @@ class UserController extends Controller
 
     public function meProfile(Request $request)
     {
-        $user = $request->user()->load('role', 'company');
+
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json(['error' => 'Usuario no autenticado'], 401);
+        }
+
         return response()->json($user);
     }
 
     public function updateProfile(Request $request)
     {
-        $user = $request->user();
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json(['error' => 'Usuario no autenticado'], 401);
+        }
 
         $validator = Validator::make($request->all(), [
             'name' => 'string|max:255',
