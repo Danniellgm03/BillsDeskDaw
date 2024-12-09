@@ -11,14 +11,28 @@ class InvoiceTemplateController extends Controller
 {
     public function index()
     {
-        $templates = InvoiceTemplate::where('company_id', auth()->user()->company_id)->get();
+
+        $user = auth()->user();
+
+        if(!$user){
+            return response()->json(['message' => 'No autorizado'], 401);
+        }
+
+        $templates = InvoiceTemplate::where('company_id', $user->company_id)->get();
         return response()->json($templates);
     }
 
     public function show($id)
     {
+
+        $user = auth()->user();
+
+        if(!$user){
+            return response()->json(['message' => 'No autorizado'], 401);
+        }
+
         $template = InvoiceTemplate::where('_id', $id)
-            ->where('company_id', auth()->user()->company_id)
+            ->where('company_id', $user->company_id)
             ->firstOrFail();
 
         return response()->json($template);

@@ -11,14 +11,28 @@ class CorrectionRuleController extends Controller
 {
     public function index()
     {
-        $rules = CorrectionRule::where('company_id', auth()->user()->company_id)->get();
+
+        $user = auth()->user();
+
+        if(!$user){
+            return response()->json(['message' => 'No autorizado'], 401);
+        }
+
+        $rules = CorrectionRule::where('company_id', $user->company_id)->get();
         return response()->json($rules);
     }
 
     public function getByTemplateId($templateId)
     {
+
+        $user = auth()->user();
+
+        if(!$user){
+            return response()->json(['message' => 'No autorizado'], 401);
+        }
+
         $template = InvoiceTemplate::where('_id', $templateId)
-            ->where('company_id', auth()->user()->company_id)
+            ->where('company_id', $user->company_id)
             ->firstOrFail();
 
         $rules = $template->correctionRules;
@@ -47,12 +61,18 @@ class CorrectionRuleController extends Controller
             return response()->json(['errors' => $validator->errors()], 400);
         }
 
+        $user = auth()->user();
+
+        if(!$user){
+            return response()->json(['message' => 'No autorizado'], 401);
+        }
+
         $template = InvoiceTemplate::where('_id', $request->input('template_id'))
-            ->where('company_id', auth()->user()->company_id)
+            ->where('company_id', $user->company_id)
             ->firstOrFail();
 
         $rule = CorrectionRule::create([
-            'company_id' => auth()->user()->company_id,
+            'company_id' => $user->company_id,
             'rule_name' => $request->input('rule_name'),
             'conditions' => $request->input('conditions'),
             'corrections' => $request->input('corrections'),
@@ -66,9 +86,9 @@ class CorrectionRuleController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'rule_name' => 'nullable|string|max:255',
-            'conditions' => 'nullable|array|size:1',
+            'conditions' => 'required|nullable|array|size:1',
             'conditions.*' => 'required|array',
-            'corrections' => 'nullable|array|size:1',
+            'corrections' => 'required|nullable|array|size:1',
             'corrections.*' => 'required|array',
         ]);
 
