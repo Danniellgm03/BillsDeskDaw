@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use App\Models\Invitation;
 use App\Notifications\InviteUserNotification;
+use Illuminate\Support\Facades\Auth;
 
 
 class InvitationController extends Controller
@@ -28,10 +29,10 @@ class InvitationController extends Controller
 
     public function sendInvitation(Request $request)
     {
+
         $validator = Validator::make($request->all(), [
-            'email' => 'required|email',
-            'role_id' => 'required|exists:roles,id',
-            'company_id' => 'required|exists:companies,id',
+            'email' => 'required|email|unique:invitations,email',
+            'role_id' => 'required|exists:roles,id'
         ]);
 
 
@@ -43,10 +44,18 @@ class InvitationController extends Controller
             return response()->json(['error' => 'Invitation already sent to this email'], 422);
         }
 
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json(['error' => 'User not authenticated'], 401);
+        }
+
+        $company = $user->company;
+
         $invitation = Invitation::create([
             'email' => $request->email,
             'role_id' => $request->role_id,
-            'company_id' => $request->company_id,
+            'company_id' => $company->id,
             'token' => Str::random(32),
         ]);
 

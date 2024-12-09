@@ -16,13 +16,14 @@ class RoleFactory extends Factory
      */
     public function definition()
     {
+        $permissions = ['create', 'read', 'update', 'delete'];
+
         return [
-            'name' => $this->faker->word,
-            'permissions' => $this->faker->randomElements(
-                ['create', 'read', 'update', 'delete'],
-                $this->faker->numberBetween(1, 4)
-            ), // Genera un subconjunto de permisos
-            'isAdmin' => $this->faker->boolean, // Genera true o false
+            'name' => ['admin', 'user'][array_rand(['admin', 'user'])], // Alternativa a randomElement
+            'permissions' => collect($permissions)
+                ->random($this->faker->numberBetween(1, 4))
+                ->toArray(), // Genera un subconjunto de permisos
+            'isAdmin' => false, // Genera true o false
         ];
     }
 }
