@@ -14,7 +14,7 @@
         </Tab>
 
         <!-- Contactos (requiere permisos específicos o admin) -->
-        <Tab value="2" v-if="hasPermission(['manage_contacts', 'view_contacts'])">
+        <Tab value="2" v-if="hasPermission(['manage_contacts'])">
           {{ $t('settings.contacts') }}
         </Tab>
       </TabList>
@@ -25,7 +25,7 @@
         <TabPanel value="1" v-if="hasPermission(['manage_users', 'manage_roles'])">
           <UsersComponent />
         </TabPanel>
-        <TabPanel value="2" v-if="hasPermission(['manage_contacts', 'view_contacts'])">
+        <TabPanel value="2" v-if="hasPermission(['manage_contacts'])">
           <ContactsComponent />
         </TabPanel>
       </TabPanels>

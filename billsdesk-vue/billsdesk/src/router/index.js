@@ -59,7 +59,7 @@ const routes = [
           { path: 'finish', component: Finish }
         ]
       },
-      { path: 'settings', component: SettingsPanel, meta: { permission: ['manage_users', 'manage_roles', 'meProfile', 'updateProfile', 'manage_companies', 'view_companies', 'manage_invitations', 'manage_contacts', 'view_contacts'] } },
+      { path: 'settings', component: SettingsPanel, meta: { permission: ['manage_users', 'manage_roles', 'meProfile', 'updateProfile', 'manage_companies', 'view_companies', 'manage_invitations', 'manage_contacts'] } },
     ],
   },
 ];
