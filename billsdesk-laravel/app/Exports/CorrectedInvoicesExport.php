@@ -20,23 +20,38 @@ class CorrectedInvoicesExport implements FromArray, WithHeadings, WithStyles
 
     public function array(): array
     {
-        // Remover las columnas _highlight
-        $dataWithoutHighlights = array_map(function ($row) {
-            return array_filter($row, function ($key) {
-                return !str_contains($key, '_highlight');
-            }, ARRAY_FILTER_USE_KEY);
+        // Obtenemos todas las cabeceras
+        $headings = $this->headings();
+
+        // Filtrar las filas para remover columnas que contienen '_highlight'
+        $dataWithoutHighlights = array_map(function ($row) use ($headings) {
+            // Asegurarnos de que cada fila tenga todas las columnas
+            $rowWithoutHighlights = [];
+
+            foreach ($headings as $key) {
+                // Si la clave existe en la fila, la agregamos; si no, asignamos null
+                $rowWithoutHighlights[$key] = $row[$key] ?? null;
+            }
+
+            return $rowWithoutHighlights;
         }, $this->processedData);
 
-        // Crear una fila para agregaciones inicializada con valores vacíos
-        $aggregationRow = array_fill_keys(array_keys($dataWithoutHighlights[0]), null);
-
-        return $dataWithoutHighlights; // No añadimos la fila de agregaciones directamente aquí
+        return $dataWithoutHighlights;
     }
 
-    public function headings(): array
+   public function headings(): array
     {
-        // Excluir cabeceras que contienen _highlight
-        return array_filter(array_keys($this->processedData[0]), function ($key) {
+        // Usar un array para almacenar todas las claves posibles
+        $allKeys = [];
+
+        // Recorremos todas las filas de datos
+        foreach ($this->processedData as $row) {
+            // Agregamos las claves de cada fila al array de todas las claves
+            $allKeys = array_merge($allKeys, array_keys($row));
+        }
+
+        // Eliminar claves que contienen '_highlight' y devolver solo las claves únicas
+        return array_filter(array_unique($allKeys), function ($key) {
             return !str_contains($key, '_highlight');
         });
     }
