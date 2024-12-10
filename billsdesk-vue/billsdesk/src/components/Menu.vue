@@ -39,6 +39,10 @@
                     </li>
                 </ul>
                 <div class="divider"></div>
+                <div>
+                    <Select v-model="selectedLanguage"  @change="changeLanguage" :options="languages" optionLabel="name" optionValue="code" placeholder="Select a Lang" />
+                </div>
+                
                 <div class="menu_general_container">
                     <!-- <p>
                         {{ $t('general.title') }}
@@ -86,8 +90,11 @@ import { useNotificationService } from '@/utils/notificationService';
 const { notify } = useNotificationService();
 import { useI18n } from 'vue-i18n';
 import { defineEmits } from 'vue';
+import Select from 'primevue/select';
 
-const { t } = useI18n();
+
+
+const { t, locale } = useI18n();
 const router = useRouter();
 const emit = defineEmits(['open_menu']);
 
@@ -95,7 +102,18 @@ const open_menu = () => {
     emit('open_menu');
 };
 
+const languages = [
+    { name: 'English', code: 'en' },
+    { name: 'Español', code: 'es' },
+    { name: 'Italy', code: 'it' },
+    { name: 'China', code: 'zh-CN'}
+];
 
+const selectedLanguage = ref(locale.value)
+
+const changeLanguage = () => {
+  locale.value = selectedLanguage.value; 
+};
 
 const authStore = useAuthStore(); // Accede al store de autenticación
 const user_data = JSON.parse(localStorage.getItem('user_data'));
