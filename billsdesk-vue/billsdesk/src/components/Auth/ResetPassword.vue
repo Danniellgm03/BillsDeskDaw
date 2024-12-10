@@ -38,6 +38,9 @@ import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
+import { useNotificationService } from '@/utils/notificationService';
+
+const { notify } = useNotificationService();
 
 const { t } = useI18n();
 
@@ -88,7 +91,12 @@ onBeforeMount(async () => {
     email.value = searchParams.get('email');
 
     if (!token.value || !email.value) {
-        alert(t('auth.invalid_or_missing_token_email'));
+        notify({
+            severity: 'error',
+            summary: t('auth.invalid_or_missing_token_email'),
+            detail: t('auth.invalid_or_missing_token_email'),
+            life: 3000,
+        });
         router.push('/login');
     }
 
@@ -98,12 +106,22 @@ onBeforeMount(async () => {
 // Manejar el restablecimiento de contraseña
 const handleResetPassword = async () => {
     if (!password.value || !confirmPassword.value) {
-        alert(t('auth.fill_all_fields'));
+        notify({
+            severity: 'error',
+            summary: t('auth.fill_all_fields'),
+            detail: t('auth.fill_all_fields'),
+            life: 3000,
+        });
         return;
     }
 
     if (password.value !== confirmPassword.value) {
-        alert(t('auth.password_mismatch'));
+        notify({
+            severity: 'error',
+            summary: t('auth.password_mismatch'),
+            detail: t('auth.password_mismatch'),
+            life: 3000,
+        });
         return;
     }
 
@@ -126,15 +144,30 @@ const handleResetPassword = async () => {
         if (!response.ok) {
             const errorData = await response.json();
             console.error(t('auth.error_resetting_password'), errorData);
-            alert(t('auth.reset_password_failed', { message: errorData.message || t('auth.unknown_error') }));
+            notify({
+                severity: 'error',
+                summary: t('auth.reset_password_failed'),
+                detail: errorData.message || t('auth.unknown_error'),
+                life: 3000,
+            });
             return;
         }
 
-        alert(t('auth.reset_password_success'));
+        notify({
+            severity: 'success',
+            summary: t('auth.reset_password_success'),
+            detail: t('auth.reset_password_success'),
+            life: 3000,
+        });
         router.push('/login');
     } catch (error) {
         console.error(t('auth.error_resetting_password'), error.message);
-        alert(t('auth.error_occurred'));
+        notify({
+            severity: 'error',
+            summary: t('auth.reset_password_failed'),
+            detail: t('auth.reset_password_failed'),
+            life: 3000,
+        });
     } finally {
         loading.value = false;
     }

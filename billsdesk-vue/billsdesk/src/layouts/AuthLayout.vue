@@ -9,10 +9,23 @@
                 <div class="blur_overlay"></div>
             </div>
         </section>
+        <Toast ref="toast" />
     </div>
 </template>
 
 <script setup>
+import Toast from 'primevue/toast';
+import { useNotificationService } from '@/utils/notificationService';
+const { setToast } = useNotificationService();
+import { ref, onMounted } from 'vue';
+
+const toast = ref(null);
+
+onMounted(() => {
+  setToast(toast.value); // Asocia el Toast al servicio
+});
+
+
 defineProps({
     loading: {
         type: Boolean,

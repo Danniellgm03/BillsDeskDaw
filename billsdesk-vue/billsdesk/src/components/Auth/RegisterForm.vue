@@ -1,6 +1,7 @@
 <template>
     <AuthLayout :loading="loading">
         <template #left-content>
+            <ErrorsComponent :errors="errors" v-if="errors != null" />
             <h2>{{ $t('auth.register_create') }}</h2>
             <p>{{ $t('auth.register_desc', 'Join us! Please fill in the details to register') }}</p>
 
@@ -41,6 +42,11 @@ import Button from 'primevue/button';
 import Cookies from 'js-cookie'; // Añadir el paquete js-cookie para manejar cookies
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
+import ErrorsComponent from '@/components/ErrorsComponent.vue';
+import { useNotificationService } from '@/utils/notificationService';
+
+const { notify } = useNotificationService();
+const errors = ref(null);
 
 const { t } = useI18n();
 
@@ -78,9 +84,7 @@ const handleRegister = async () => {
         if (!response.ok) {
             const errorData = await response.json();
             console.error('Error registering:', errorData);
-            alert(
-                t('auth.registration_failed')
-            );
+            errors.value = errorData.errors;    
             return;
         }
 
@@ -102,15 +106,16 @@ const handleRegister = async () => {
             });            
             router.push('/');
         } else {
-            alert(
-                t('auth.registration_failed')
-            );
+           errors.value = data.errors;
         }
     } catch (error) {
         console.error('Error registering:', error.message);
-        alert(
-            t('auth.registration_failed')
-        );
+        notify({
+            severity: 'error',
+            summary: t('auth.register_failed'),
+            detail: t('auth.register_failed'),
+            life: 3000
+        });
     } finally {
         loading.value = false;
     }

@@ -43,6 +43,11 @@ import Button from 'primevue/button';
 import Cookies from 'js-cookie'; // Añadir el paquete js-cookie para manejar cookies
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
+import ErrorsComponent from '@/components/ErrorsComponent.vue';
+import { useNotificationService } from '@/utils/notificationService';
+
+const { notify } = useNotificationService();
+const errors = ref(null);
 
 const { t } = useI18n();
 
@@ -56,6 +61,7 @@ const password = ref('');
 const confirmPassword = ref('');
 const token = ref('');
 const loading = ref(false);
+
 
 onBeforeMount(async () => {
     token.value = await getInvitationData();
@@ -71,7 +77,12 @@ const getInvitationData = async () => {
     const searchParams = new URLSearchParams(window.location.search);
     const invitationToken = searchParams.get('token');
     if (!invitationToken) {
-        alert(t('auth.invalid_invitation'));
+        notify({
+            severity: 'error',
+            summary: t('auth.invalid_invitation'),
+            detail: t('auth.invalid_invitation'),
+            life: 3000
+        });
         router.push('/login');
     }
     return invitationToken;
@@ -83,13 +94,23 @@ const handleFetchInvitationData = async (invitationToken) => {
         if (!response.ok) {
             const errorData = await response.json();
             console.error('Error fetching invitation data:', errorData);
-            alert(t('auth.error_register'));
+            notify({
+                severity: 'error',
+                summary: t('auth.error_register'),
+                detail: t('auth.error_register'),
+                life: 3000
+            });
             router.push('/login');
         }
         return await response.json();
     } catch (error) {
         console.error('Error fetching invitation data:', error.message);
-        alert(t('auth.error_register'));
+        notify({
+            severity: 'error',
+            summary: t('auth.error_register'),
+            detail: t('auth.error_register'),
+            life: 3000
+        });
         router.push('/login');
     }
 };
@@ -97,16 +118,23 @@ const handleFetchInvitationData = async (invitationToken) => {
 
 const handleRegister = async () => {
     if (password.value !== confirmPassword.value) {
-        alert(
-            t('password_mismatch')
-        );
+        notify({
+            severity: 'error',
+            summary: t('auth.password_mismatch'),
+            detail: t('auth.password_mismatch'),
+            life: 3000
+        });
         return;
     }
 
     if (email.value !== email_invitation.value) {
-        alert(
-            t('auth.email_mismatch')
-        );
+      
+        notify({
+            severity: 'error',
+            summary: t('auth.email_mismatch'),
+            detail: t('auth.email_mismatch'),
+            life: 3000
+        });
         return;
     }
 
@@ -129,9 +157,12 @@ const handleRegister = async () => {
         if (!response.ok) {
             const errorData = await response.json();
             console.error('Error registering:', errorData);
-            alert(
-                t('auth.error_register')
-            );
+            notify({
+                severity: 'error',
+                summary: t('auth.error_register'),
+                detail: t('auth.error_register'),
+                life: 3000
+            });
             return;
         }
 
@@ -152,15 +183,21 @@ const handleRegister = async () => {
             });            
             router.push('/login');
         } else {
-            alert(
-                t('auth.error_register')
-            );
+            notify({
+                severity: 'error',
+                summary: t('auth.error_register'),
+                detail: t('auth.error_register'),
+                life: 3000
+            });
         }
     } catch (error) {
         console.error('Error registering:', error.message);
-        alert(
-            t('auth.error_register')
-        );
+        notify({
+            severity: 'error',
+            summary: t('auth.error_register'),
+            detail: t('auth.error_register'),
+            life: 3000
+        });
     } finally {
         loading.value = false;
     }

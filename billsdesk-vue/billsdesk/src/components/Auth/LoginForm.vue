@@ -45,10 +45,16 @@ import Button from 'primevue/button';
 import { useAuthStore } from '@/stores/authStore';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
+import { useNotificationService } from '@/utils/notificationService';
+
+const { notify } = useNotificationService();
+
 
 const { t } = useI18n();
 
 const router = useRouter();
+
+
 
 
 const authStore = useAuthStore();
@@ -73,8 +79,13 @@ const handleLogin = async () => {
 
     if (!response.ok) {
       const errorData = await response.json();
-      console.error('Error logging in:', errorData);
-      alert(t('auth.login_failed') + ': ' + (errorData.message || 'Unknown error'));
+      notify({
+        severity: 'error',
+        summary: 'Error Login',
+        detail:  t('auth.login_failed'),
+        life: 3000,
+      });
+      loading.value = false;
       return;
     }
 
@@ -84,11 +95,21 @@ const handleLogin = async () => {
       await authStore.setUserData(data.user, `${data.token_type} ${data.access_token}`, data.permissions);
       router.push('/');
     } else {
-      alert(t('auth.login_failed'));
+      notify({
+        severity: 'error',
+        summary: 'Error Login',
+        detail: t('auth.login_failed'),
+        life: 3000,
+      });
     }
   } catch (error) {
     console.error('Error logging in:', error.message);
-    alert(t('auth.login_failed'));
+    notify({
+      severity: 'error',
+      summary: 'Error Login',
+      detail: t('auth.login_failed'),
+      life: 3000,
+    });
   }
   loading.value = false;
 };
