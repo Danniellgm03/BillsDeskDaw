@@ -1,22 +1,22 @@
 <template>
   <div>
     <h2>{{ $t('corrector.template.rules.title') }}:</h2>
-    
+
     <div v-if="!loading">
-      <ErrorsComponent :errors="errors" v-if="errors != null"/>
+      <ErrorsComponent :errors="errors" v-if="errors != null" />
       <p style="
       margin: 10px 0;
       "><strong>
           {{ invoiceTemplate?.template_name }}
-      </strong></p>
-  
-  
+        </strong></p>
+
+
       <!-- Formulario -->
       <form @submit.prevent="saveCorrectionRule" v-if="!loading">
         <h3>
           {{ $t('corrector.template.rules.create_or_edit_correction_rule') }}
         </h3>
-  
+
         <!-- Nombre de la regla -->
         <div class="form-group">
           <label for="rule_name">
@@ -24,7 +24,7 @@
           </label>
           <InputText type="text" v-model="ruleData.rule_name" />
         </div>
-  
+
         <!-- Condiciones -->
         <div class="form-group conditions">
           <label for="conditions">
@@ -32,8 +32,8 @@
           </label>
           <div v-for="(condition, index) in ruleData.conditions" :key="index" class="condition">
             <InputText v-model="condition.field" placeholder="Field" />
-            <Select v-model="condition.operator" :options="opertators" optionLabel="label" optionValue="value" 
-            :placeholder="$t('corrector.template.rules.select_operator')" />
+            <Select v-model="condition.operator" :options="opertators" optionLabel="label" optionValue="value"
+              :placeholder="$t('corrector.template.rules.select_operator')" />
             <InputText v-model="condition.value" :placeholder="$t('corrector.template.rules.value')" />
             <button type="button" @click="removeCondition(index)" class="buttonremove">
               {{ $t('corrector.template.rules.remove_condition') }}
@@ -43,7 +43,7 @@
             {{ $t('corrector.template.rules.add_condition') }}
           </button>
         </div>
-  
+
         <!-- Correcciones -->
         <div class="form-group corrections">
           <label for="corrections">
@@ -51,15 +51,18 @@
           </label>
           <div v-for="(correction, index) in ruleData.corrections" :key="index" class="correction">
             <InputText v-model="correction.field" :placeholder="$t('corrector.template.rules.field')" />
-            <InputText v-model="correction.new_column" :placeholder="$t('corrector.template.rules.new_column_optional')" />
-            <Select v-model="correction.action" :options="actions" optionLabel="label" optionValue="value" placeholder="Action (update, subtract, etc.)" />
+            <InputText v-model="correction.new_column"
+              :placeholder="$t('corrector.template.rules.new_column_optional')" />
+            <Select v-model="correction.action" :options="actions" optionLabel="label" optionValue="value"
+              placeholder="Action (update, subtract, etc.)" />
             <label>
-               {{ $t('corrector.template.rules.correction_values') }}
+              {{ $t('corrector.template.rules.correction_values') }}
             </label>
             <div v-for="(value, idx) in correction.value" :key="idx" class="value">
               <InputText v-model="value.min" placeholder="Min" />
               <InputText v-model="value.max" placeholder="Max" />
               <InputText v-model="value.step" :placeholder="$t('corrector.template.rules.step') + '(Optional)'" />
+              <InputText v-model="value.step_increment" :placeholder="'Step Increment' + '(Optional)'" />
               <InputText v-model="value.value" :placeholder="$t('corrector.template.rules.value')" />
               <button type="button" @click="removeCorrectionValue(correction, idx)" class="buttonremove">
                 {{ $t('corrector.template.rules.remove_value') }}
@@ -76,64 +79,67 @@
             {{ $t('corrector.template.rules.add_correction') }}
           </button>
         </div>
-  
+
         <button type="submit">
           {{ $t('corrector.template.rules.save_correction_rule') }}
         </button>
       </form>
       <div v-if="correctionRules.length > 0 " class="correction-rules-container">
-          <h3>
-              {{ $t('corrector.template.rules.correction_rule_created') }}
-          </h3>
-          <div v-for="(rule, index) in correctionRules" :key="index" class="correction-rule-card">
-              <div class="rule-header">
-              <h4>{{ rule.rule_name }}</h4>
-              <button type="button" class="delete-button" @click="deleteRule(index)">
-                  {{ $t('corrector.template.rules.delete_correction_rule') }}
-              </button>
-              </div>
-              
-              <div class="rule-section">
-              <p><strong>{{ $t('corrector.template.rules.conditions') }}:</strong></p>
-              <ul class="conditions-list">
-                  <li v-for="(condition, idx) in rule.conditions" :key="idx" class="condition-item">
-                  <span>{{ condition.field }}</span>
-                  <span>{{ condition.operator }}</span>
-                  <span>{{ condition.value }}</span>
-                  </li>
-              </ul>
-              </div>
-  
-              <div class="rule-section">
-              <p><strong>{{ $t('corrector.template.rules.corrections') }}:</strong></p>
-              <ul class="corrections-list">
-                  <li v-for="(correction, idx) in rule.corrections" :key="idx" class="correction-item">
-                  <div class="correction-info">
-                      <span><strong>{{ $t('corrector.template.rules.field') }}:</strong> {{ correction.field }}</span>
-                      <span><strong>{{ $t('corrector.template.rules.new_field') }}:</strong> {{ correction.new_column }}</span>
-                      <span><strong>{{ $t('corrector.template.rules.action') }}:</strong> {{ correction.action }}</span>
-                  </div>
-                  <ul class="values-list">
-                      <li v-for="(value, i) in correction.value" :key="i" class="value-item">
-                      <span><strong>Min:</strong> {{ value.min }}</span>
-                      <span><strong>Max:</strong> {{ value.max }}</span>
-                      <span><strong>{{ $t('corrector.template.rules.step') }}:</strong> {{ value.step || 'N/A' }}</span>
-                      <span><strong>{{ $t('corrector.template.rules.value') }}:</strong> {{ value.value }}</span>
-                      </li>
-                  </ul>
-                  </li>
-              </ul>
-              </div>
+        <h3>
+          {{ $t('corrector.template.rules.correction_rule_created') }}
+        </h3>
+        <div v-for="(rule, index) in correctionRules" :key="index" class="correction-rule-card">
+          <div class="rule-header">
+            <h4>{{ rule.rule_name }}</h4>
+            <button type="button" class="delete-button" @click="deleteRule(index)">
+              {{ $t('corrector.template.rules.delete_correction_rule') }}
+            </button>
           </div>
+
+          <div class="rule-section">
+            <p><strong>{{ $t('corrector.template.rules.conditions') }}:</strong></p>
+            <ul class="conditions-list">
+              <li v-for="(condition, idx) in rule.conditions" :key="idx" class="condition-item">
+                <span>{{ condition.field }}</span>
+                <span>{{ condition.operator }}</span>
+                <span>{{ condition.value }}</span>
+              </li>
+            </ul>
+          </div>
+
+          <div class="rule-section">
+            <p><strong>{{ $t('corrector.template.rules.corrections') }}:</strong></p>
+            <ul class="corrections-list">
+              <li v-for="(correction, idx) in rule.corrections" :key="idx" class="correction-item">
+                <div class="correction-info">
+                  <span><strong>{{ $t('corrector.template.rules.field') }}:</strong> {{ correction.field }}</span>
+                  <span><strong>{{ $t('corrector.template.rules.new_field') }}:</strong> {{ correction.new_column
+                    }}</span>
+                  <span><strong>{{ $t('corrector.template.rules.action') }}:</strong> {{ correction.action }}</span>
+                </div>
+                <ul class="values-list">
+                  <li v-for="(value, i) in correction.value" :key="i" class="value-item">
+                    <span><strong>Min:</strong> {{ value.min }}</span>
+                    <span><strong>Max:</strong> {{ value.max }}</span>
+                    <span><strong>{{ $t('corrector.template.rules.step') }}:</strong> {{ value.step || 'N/A' }}</span>
+                    <span><strong>Step Increment:</strong> {{ value.step_increment
+                      || 'N/A' }}</span>
+                    <span><strong>{{ $t('corrector.template.rules.value') }}:</strong> {{ value.value }}</span>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </div>
       </div>
-  
+
       <!-- button to route finish -->
       <button @click="fetchSaveInvoice" :disabled="loading">
         {{ $t('corrector.template.rules.finish_mapping') }}
       </button>
-      
+
     </div>
-    <div  class="loading_container" v-else>
+    <div class="loading_container" v-else>
       <LoadingTemplate />
     </div>
 
@@ -172,7 +178,8 @@ const actions = [
 const deleteRule = async (index) => {
 
   try {
-    
+    loading.value = true;
+
     const response = await fetch(`http://localhost:8000/api/company/correction-rules/${correctionRules.value[index].id}`, {
       method: 'DELETE',
       headers: {
@@ -192,7 +199,6 @@ const deleteRule = async (index) => {
       return;
     }
 
-    loading.value = true;
     let corrections = await fetchCorrectionRules();
     correctionRules.value = corrections.correction_rules;
     loading.value = false;
@@ -285,13 +291,35 @@ const removeCorrectionValue = (correction, idx) => correction.value.splice(idx, 
 const saveCorrectionRule = async () => {
   try {
     loading.value = true;
+
+
+    // Procesar las correcciones
+    const processedCorrections = ruleData.value.corrections.map((correction) => {
+      if (Array.isArray(correction.value) && correction.value.length > 0) {
+        const processedValues = correction.value.map((val) => ({
+          ...val,
+          step_increment: val.step_increment || null, // Agregar step_increment si no está definido
+        }));
+        return {
+          ...correction,
+          value: processedValues,
+        };
+      }
+      return correction;
+    });
+
+    const payload = {
+      ...ruleData.value,
+      corrections: processedCorrections,
+    };
+
     const response = await fetch(`http://localhost:8000/api/company/correction-rules`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${Cookies.get('authToken')}`,
       },
-      body: JSON.stringify(ruleData.value),
+      body: JSON.stringify(payload),
     });
     const data = await response.json();
 
