@@ -198,11 +198,15 @@ class UserController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        if ($request->has('password')) {
+        if ($request->has('password') && !empty($request->password)) {
             $user->password = Hash::make($request->password);
         }
 
-        $user->update($request->only(['name', 'email']));
+        if (!$request->password) {
+            $request->request->remove('password');
+        }
+
+        $user->update($request->only(['name', 'email', 'phone', 'address']));
 
         return response()->json($user);
     }

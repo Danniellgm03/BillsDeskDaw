@@ -34,7 +34,7 @@ class DatabaseSeeder extends Seeder
         $userRole = Role::create([
             'name' => 'user',
             'permissions' => [
-                'manage_users', 'manage_files'
+                'manage_files', 'manage_invoices', 'manage_invoice_templates', 'meProfile', 'manage_correction_rules', 'view_contacts'
             ],
         ]);
 
@@ -49,13 +49,13 @@ class DatabaseSeeder extends Seeder
         ]);
 
         User::create([
-            'name' => 'Usuario Prueba 2',
+            'name' => 'Root Prueba 2',
             'email' => 'root2@root2.com',
             'password' => bcrypt('pepe123'),
             'phone' => '123456789',
             'address' => 'Dirección de prueba',
             'role_id' => $adminRole->id,
-            'company_id' => $company->id,
+            'company_id' => $company2->id,
         ]);
 
         User::create([
@@ -65,16 +65,7 @@ class DatabaseSeeder extends Seeder
             'phone' => '123456789',
             'address' => 'Dirección de prueba',
             'role_id' => $userRole->id,
-            'company_id' => $company2->id,
-        ]);
-        User::create([
-            'name' => 'Usuario Prueba 4',
-            'email' => 'user2@user2.com',
-            'password' => bcrypt('pepe123'),
-            'phone' => '123456789',
-            'address' => 'Dirección de prueba',
-            'role_id' => $userRole->id,
-            'company_id' => $company2->id,
+            'company_id' => $company->id,
         ]);
     }
 }

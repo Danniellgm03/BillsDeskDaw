@@ -273,7 +273,7 @@ class InvoiceImport implements ToCollection, WithHeadingRow
     private function resolveValue($value, $currentValue)
     {
         // Verifica si 'value' es un array de rangos
-        if (is_array($value)) {
+        if (is_array($value) && !empty($value[0]['min']) && !empty($value[0]['max'])) {
             foreach ($value as $range) {
                 // Verifica si el rango tiene 'step' y 'step_increment'
                 if (isset($range['step'])) {
@@ -301,6 +301,11 @@ class InvoiceImport implements ToCollection, WithHeadingRow
         }
 
         // Si no es un array ni se aplica 'step', simplemente devuelve el valor
+
+        if(is_array($value)){
+            $value = $value[0]['value'];
+        }
+
         return $value;
     }
 
