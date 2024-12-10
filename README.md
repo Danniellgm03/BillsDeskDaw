@@ -362,3 +362,7 @@ Estas dependencias están diseñadas para el desarrollo del proyecto:
 Se han realizado 301 test unitarios para garantizar el correcto funcionamiento de la api (Laravel)
 
 ![TESTS](/images/tests.png)
+
+## 10. PostMan
+
+Ademas se incluye una exportacion de postman para poder utilizarlo desde Postman

@@ -12,13 +12,14 @@
       <div class="form-group mapping">
         <label>{{ $t('corrector.template.edit.columns_mapping') }}</label>
         <div v-if="!loading">
-          <div v-for="(value, key, index) in templateData.column_mappings" :key="index" >
+          <div v-for="(value, key, index) in templateData.column_mappings" :key="index">
             <label><small>{{ $t('corrector.template.edit.column_key') }}: {{ key }}</small></label>
-            <InputText type="text" v-model="templateData.column_mappings[key]" :placeholder="($t('corrector.template.edit.column')) + key" /> 
+            <InputText type="text" v-model="templateData.column_mappings[key]"
+              :placeholder="($t('corrector.template.edit.column')) + key" />
           </div>
         </div>
         <div class="loading_container" v-if="loading">
-            <LoadingTemplate />
+          <LoadingTemplate />
         </div>
       </div>
 
@@ -27,11 +28,14 @@
         <label>{{ $t('corrector.template.edit.formulas') }}</label>
         <div v-if="!loading">
           <div v-for="(formula, index) in templateData.formulas" :key="index">
-            <InputText type="text" v-model="formula.new_column" :placeholder="$t('corrector.template.edit.new_column')" />
+            <InputText type="text" v-model="formula.new_column"
+              :placeholder="$t('corrector.template.edit.new_column')" />
             <InputText type="text" v-model="formula.formula" :placeholder="$t('corrector.template.edit.formulas')" />
-            <button type="button" @click="removeFormula(index)" class="buttonremove">{{ $t('corrector.template.edit.remove_formula') }}</button>
+            <button type="button" @click="removeFormula(index)" class="buttonremove">{{
+              $t('corrector.template.edit.remove_formula') }}</button>
           </div>
-          <button type="button" @click="addFormula" class="button_add">{{ $t('corrector.template.edit.add_formula') }}</button>
+          <button type="button" @click="addFormula" class="button_add">{{ $t('corrector.template.edit.add_formula')
+            }}</button>
         </div>
         <div class="loading_container" v-else>
           <LoadingTemplate />
@@ -45,8 +49,8 @@
           <div v-for="(rule, index) in templateData.validation_rules" :key="index">
             <div>
               <InputText type="text" v-model="rule.field" placeholder="Field" />
-              <Select v-model="rule.operator" :options="opertators" optionLabel="label" optionValue="value" 
-              :placeholder="$t('corrector.template.edit.select_operator')" style="
+              <Select v-model="rule.operator" :options="opertators" optionLabel="label" optionValue="value"
+                :placeholder="$t('corrector.template.edit.select_operator')" style="
               width: 100%;
               margin: 5px;
               padding: 5px;
@@ -56,21 +60,23 @@
                 borderColor: '#'+rule.highlight || '#000',
               }">
                 <label for="">{{ $t('corrector.template.edit.celd_highlight_color') }}</label>
-                <ColorPicker v-model="rule.highlight" :placeholder="$t('corrector.template.edit.highlight_optional')" defaultColor="b1b1b1" />
+                <ColorPicker v-model="rule.highlight" :placeholder="$t('corrector.template.edit.highlight_optional')"
+                  defaultColor="b1b1b1" />
                 <!-- remove color -->
-                 <a @click="rule.highlight = ''" class="remove_color">
+                <a @click="rule.highlight = ''" class="remove_color">
                   <i class="pi pi-times"></i>
-                 </a>
+                </a>
               </div>
               <div class="color_picker" :style="{
                 borderColor: '#'+rule.row_highlight || '#000',
               }">
                 <label for="">{{ $t('corrector.template.edit.row_highlight') }}</label>
-                <ColorPicker v-model="rule.row_highlight" :placeholder="$t('corrector.template.edit.row_highlight_optional')" defaultColor="b1b1b1" />
+                <ColorPicker v-model="rule.row_highlight"
+                  :placeholder="$t('corrector.template.edit.row_highlight_optional')" defaultColor="b1b1b1" />
                 <!-- remove color -->
-                 <a @click="rule.row_highlight = ''" class="remove_color">
+                <a @click="rule.row_highlight = ''" class="remove_color">
                   <i class="pi pi-times"></i>
-                 </a>
+                </a>
               </div>
               <button type="button" @click="removeValidationRule(index)" class="buttonremove">
                 {{ $t('corrector.template.edit.remove_validation_rule') }}
@@ -82,9 +88,10 @@
                 {{ $t('corrector.template.edit.conditions') }}
               </label>
               <div v-for="(condition, idx) in rule.conditions" :key="idx" class="condition_inputs">
-                <InputText type="text" v-model="condition.field" :placeholder="$t('corrector.template.edit.condition_field')" />
-                <Select v-model="condition.operator" :options="opertators" optionLabel="label" optionValue="value" 
-                :placeholder="$t('corrector.template.edit.select_operator')"  style="
+                <InputText type="text" v-model="condition.field"
+                  :placeholder="$t('corrector.template.edit.condition_field')" />
+                <Select v-model="condition.operator" :options="opertators" optionLabel="label" optionValue="value"
+                  :placeholder="$t('corrector.template.edit.select_operator')" style="
                 width: 100%;
                 margin: 5px;
                 padding: 5px;
@@ -94,18 +101,20 @@
                   borderColor: '#'+condition.highlight || '#000',
                 }">
                   <label for="">{{ $t('corrector.template.edit.celd_highlight_color') }}</label>
-                  <ColorPicker v-model="condition.highlight" :placeholder="$t('corrector.template.edit.highlight_optional')" defaultColor="b1b1b1" />
+                  <ColorPicker v-model="condition.highlight"
+                    :placeholder="$t('corrector.template.edit.highlight_optional')" defaultColor="b1b1b1" />
                   <!-- remove color -->
                   <a @click="condition.highlight = ''" class="remove_color">
                     <i class="pi pi-times"></i>
                   </a>
                 </div>
-                
+
                 <div class="color_picker" :style="{
                   borderColor: '#'+condition.row_highlight || '#000',
                 }">
                   <label for="">{{ $t('corrector.template.edit.row_highlight') }}</label>
-                  <ColorPicker v-model="condition.row_highlight" :placeholder="$t('corrector.template.edit.row_highlight_optional')" defaultColor="b1b1b1" />
+                  <ColorPicker v-model="condition.row_highlight"
+                    :placeholder="$t('corrector.template.edit.row_highlight_optional')" defaultColor="b1b1b1" />
                   <!-- remove color -->
                   <a @click="condition.row_highlight = ''" class="remove_color">
                     <i class="pi pi-times"></i>
@@ -137,12 +146,14 @@
         </label>
         <div v-if="!loading">
           <div v-for="(duplicate, index) in duplicated_fields" :key="index" class="duplicated_field">
-            <InputText type="text" v-model="duplicate.duplicate_field" :placeholder="$t('corrector.template.edit.duplicated')" />
+            <InputText type="text" v-model="duplicate.duplicate_field"
+              :placeholder="$t('corrector.template.edit.duplicated')" />
             <div class="color_picker" :style="{
               borderColor: '#'+duplicate.row_highlight || '#000',
             }">
               <label for="">{{ $t('corrector.template.edit.row_highlight') }}</label>
-              <ColorPicker v-model="duplicate.row_highlight"  :placeholder="$t('corrector.template.edit.row_highlight_optional')" defaultColor="b1b1b1" />
+              <ColorPicker v-model="duplicate.row_highlight"
+                :placeholder="$t('corrector.template.edit.row_highlight_optional')" defaultColor="b1b1b1" />
               <!-- remove color -->
               <a @click="duplicate.row_highlight = ''" class="remove_color">
                 <i class="pi pi-times"></i>
@@ -166,17 +177,19 @@
       <!-- Aggregations -->
       <div class="form-group aggregations">
         <label>
-          {{ $t('corrector.template.edit.aggregation') }} 
+          {{ $t('corrector.template.edit.aggregation') }}
         </label>
         <div v-if="!loading">
           <div v-for="(aggregation, index) in templateData.aggregations" :key="index">
-            <InputText type="text" v-model="aggregation.type" :placeholder="$t('corrector.template.edit.aggregation_field') " />
-            <InputText type="text" v-model="aggregation.fields" :placeholder="$t('corrector.template.edit.field_comma_separated')" />
+            <Select v-model="aggregation.type" :options="types_aggregations"
+              :placeholder="$t('corrector.template.edit.aggregation_field')" optionLabel="label" optionValue="value" style="padding: 0px !important;" />
+            <InputText type="text" v-model="aggregation.fields"
+              :placeholder="$t('corrector.template.edit.field_comma_separated')" />
             <button type="button" @click="removeAggregation(index)" class="buttonremove">
               {{ $t('corrector.template.edit.remove_aggregation') }}
             </button>
           </div>
-          <button type="button" @click="addAggregation"  class="button_add">
+          <button type="button" @click="addAggregation" class="button_add">
             {{ $t('corrector.template.edit.add_aggregation') }}
           </button>
         </div>
@@ -221,6 +234,11 @@ const opertators = [
   { label: t('less_than'), value: '<' },
   { label: t('greater_than_or_equal'), value: '>=' },
   { label: t('less_than_or_equal'), value: '<=' }
+]
+
+const types_aggregations = [
+  { label: 'sum', value: 'sum' },
+  { label: 'avg', value: 'average' }
 ]
 
 const loading = ref(false);

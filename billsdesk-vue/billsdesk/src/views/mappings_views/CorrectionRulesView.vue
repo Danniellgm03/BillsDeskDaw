@@ -52,8 +52,7 @@
           <div v-for="(correction, index) in ruleData.corrections" :key="index" class="correction">
             <InputText v-model="correction.field" :placeholder="$t('corrector.template.rules.field')" />
             <InputText v-model="correction.new_column" :placeholder="$t('corrector.template.rules.new_column_optional')" />
-            <InputText v-model="correction.action" placeholder="Action (update, subtract, etc.)" />
-  
+            <Select v-model="correction.action" :options="actions" optionLabel="label" optionValue="value" placeholder="Action (update, subtract, etc.)" />
             <label>
                {{ $t('corrector.template.rules.correction_values') }}
             </label>
@@ -163,6 +162,11 @@ const opertators = [
   { label: t('less_than'), value: '<' },
   { label: t('greater_than_or_equal'), value: '>=' },
   { label: t('less_than_or_equal'), value: '<=' }
+]
+const actions = [
+  { label: 'update', value: 'update' },
+  { label: 'subtract', value: 'subtract' },
+  { label: 'add', value: 'add' }
 ]
 
 
@@ -286,7 +290,6 @@ const saveCorrectionRule = async () => {
     });
   } finally {
     loading.value = false;
-    errors.value = null;
   }
 };
 
