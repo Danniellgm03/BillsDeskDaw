@@ -106,3 +106,12 @@ body{
     justify-content: center;
     padding: 50px 0;
 }
+
+.p-select_lang{
+    background-color: #2c2c2c !important;
+    border: transparent !important;
+}
+
+.p-select_lang .p-select-label{
+color: #fff !important;
+}

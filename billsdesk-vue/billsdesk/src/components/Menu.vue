@@ -40,7 +40,7 @@
                 </ul>
                 <div class="divider"></div>
                 <div>
-                    <Select v-model="selectedLanguage"  @change="changeLanguage" :options="languages" optionLabel="name" optionValue="code" placeholder="Select a Lang" />
+                    <Select v-model="selectedLanguage"  @change="changeLanguage" :options="languages" optionLabel="name" optionValue="code" placeholder="Select a Lang" class="p-select_lang" />
                 </div>
                 
                 <div class="menu_general_container">
