@@ -81,7 +81,6 @@
           {{ $t('corrector.template.rules.save_correction_rule') }}
         </button>
       </form>
-  
       <div v-if="correctionRules.length > 0 " class="correction-rules-container">
           <h3>
               {{ $t('corrector.template.rules.correction_rule_created') }}
@@ -169,6 +168,47 @@ const actions = [
   { label: 'add', value: 'add' }
 ]
 
+
+const deleteRule = async (index) => {
+
+  try {
+    
+    const response = await fetch(`http://localhost:8000/api/company/correction-rules/${correctionRules.value[index].id}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${Cookies.get('authToken')}`,
+      },
+    });
+
+    const data = await response.json();
+
+    if(data.errors) {
+      notify({
+        severity: 'error',
+        summary: t('error'),
+        detail: 'Error delete rule',
+      });
+      return;
+    }
+
+    loading.value = true;
+    let corrections = await fetchCorrectionRules();
+    correctionRules.value = corrections.correction_rules;
+    loading.value = false;
+
+
+
+  } catch (error) {
+    notify({
+      severity: 'error',
+      summary: t('error'),
+      detail: 'Error delete rule',
+    });
+  }
+
+
+} 
 
 const errors = ref(null);
 
@@ -278,6 +318,7 @@ const saveCorrectionRule = async () => {
       summary: t('success'),
       detail: t('corrector.template.rules.success_save_correction_rule'),
     });
+    errors.value = null;
 
     loading.value = false;
   } catch (error) {
